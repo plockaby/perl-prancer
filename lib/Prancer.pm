@@ -94,6 +94,9 @@ sub run {
     require Prancer::Middleware::Logger;
     $app = Prancer::Middleware::Logger->wrap($app);
 
+    # serve up static files if configured to do so
+    $app = $self->_enable_static($app);
+
     return $app;
 }
 
@@ -150,6 +153,39 @@ sub config {
     }
 
     return;
+}
+
+sub _enable_static {
+    my ($self, $app) = @_;
+
+    my $config = config(get => 'static');
+    if ($config) {
+        try {
+            # this intercepts requests for /static/* and checks to see if
+            # the requested file exists in the configured path. if it does
+            # it is served up. if it doesn't then the request will pass
+            # through to the handler.
+            my $path = Cwd::realpath($config->{'path'});
+            die "no path is defined\n" unless defined($path) && $path;
+            die "${path} does not exist\n" unless (-e $path);
+            die "${path} is not a directory\n" unless (-d $path);
+            die "${path} is not readable\n" unless (-r $path);
+
+            require Plack::Middleware::Static;
+            $app = Plack::Middleware::Static->wrap($app,
+                'path' => sub { s!^/static/!!x },
+                'root' => $path,
+                'pass_through' => 1,
+            );
+            logger->info("serving static files from ${path} at /static");
+        } catch {
+            logger->warn("could not initialize static file loader: initialization error: $_");
+        };
+    } else {
+        logger->warn("could not initialize static file loader: not configured");
+    }
+
+    return $app;
 }
 
 1;
@@ -318,6 +354,18 @@ Configures the logging system. For example:
         driver: Prancer::Logger::Console
         options:
             level: debug
+
+=item static
+
+Configures a directory where static documents can be found and served using
+L<Plack::Middleware::Static>. For example:
+
+    static:
+        path: /srv/www/site/static
+
+The only configuration option for static documents is C<path>. If this path
+is not defined your application will not start. If this path does not point
+to a directory that is readable your application will not start.
 
 =back
 
