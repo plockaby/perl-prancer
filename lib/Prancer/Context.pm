@@ -10,12 +10,43 @@ sub new {
         '_env'      => $args{'env'},
         '_request'  => $args{'request'},
         '_response' => $args{'response'},
+        '_session'  => $args{'session'},
     }, $class);
 }
 
 sub env {
     my $self = shift;
     return $self->{'_env'};
+}
+
+sub session {
+    my $self = shift;
+    my %args = (
+        'has' => undef,
+        'get' => undef,
+        'set' => undef,
+        'value' => undef,
+        'remove' => undef,
+        @_,
+    );
+
+    if (defined($args{'remove'})) {
+        return $self->{'_session'}->remove($args{'remove'});
+    }
+
+    if (defined($args{'has'})) {
+        return $self->{'_session'}->has($args{'has'});
+    }
+
+    if (defined($args{'set'})) {
+        return $self->{'_session'}->set($args{'set'}, $args{'value'});
+    }
+
+    if (defined($args{'get'})) {
+        return $self->{'_session'}->get($args{'get'});
+    }
+
+    return $self->{'_session'};
 }
 
 sub header {
@@ -137,6 +168,18 @@ pass it to other packages to make it available.
 =item env
 
 Returns the PSGI environment for the request.
+
+=item session
+
+This gives access to the session in various ways. For example:
+
+    my $does_foo_exist = context->session(has => 'foo');
+    my $foo = context->session(get => 'foo');
+    context->session(set => 'foo', value => 'bar');
+    context->session(remove => 'foo');
+
+Changes made to the session are persisted immediately to whatever medium
+backs your sessions.
 
 =item request
 

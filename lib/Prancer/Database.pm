@@ -32,7 +32,6 @@ sub load {
 
         try {
             Module::Load::load($module);
-            $module->import();
         } catch {
             my $error = (defined($_) ? $_ : "unknown");
             logger->fatal("could not initialize database connection '${key}': not able to load ${module}: ${error}");

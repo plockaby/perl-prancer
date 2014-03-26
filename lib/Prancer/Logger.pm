@@ -12,7 +12,6 @@ sub load {
 
     try {
         Module::Load::load($module);
-        $module->import();
     } catch {
         my $error = (defined($_) ? $_ : "unknown");
         die "could not initialize logger: not able to load ${module}: ${error}\n";

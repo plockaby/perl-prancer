@@ -8,9 +8,10 @@ use Test::More;
 use version;
 
 my @modules = (
-    { 'Template' => '0' },
-    { 'DBI'      => '0' },
-    { 'DBD::Pg'  => '0' },
+    { 'Template'                   => '0' },
+    { 'DBI'                        => '0' },
+    { 'DBD::Pg'                    => '0' },
+    { 'Plack::Middleware::Session' => '0.21' },
 );
 
 for (@modules) {

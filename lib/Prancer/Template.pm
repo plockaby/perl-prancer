@@ -20,7 +20,6 @@ sub load {
 
     try {
         Module::Load::load($module);
-        $module->import();
     } catch {
         my $error = (defined($_) ? $_ : "unknown");
         logger->fatal("could not initialize template engine: not able to load ${module}: ${error}");

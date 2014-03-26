@@ -21,6 +21,7 @@ use Prancer::Config;
 use Prancer::Logger;
 use Prancer::Request;
 use Prancer::Response;
+use Prancer::Session;
 use Prancer::Context;
 
 sub new {
@@ -91,6 +92,7 @@ sub run {
             'env'      => $env,
             'request'  => Prancer::Request->new($env),
             'response' => Prancer::Response->new($env),
+            'session'  => Prancer::Session->new($env),
         );
 
         my $handler = $self->{'_handler'};
@@ -101,6 +103,9 @@ sub run {
     # capture warnings and logging messages and send them to the configured logger
     require Prancer::Middleware::Logger;
     $app = Prancer::Middleware::Logger->wrap($app);
+
+    # enable user sessions
+    $app = $self->_enable_sessions($app);
 
     # serve up static files if configured to do so
     $app = $self->_enable_static($app);
@@ -193,6 +198,60 @@ sub database {
     }
 
     return $self->{'_database'}->{$connection}->handle();
+}
+
+sub _enable_sessions {
+    my ($self, $app) = @_;
+
+    my $config = config(get => 'session');
+    if ($config) {
+        try {
+            # load the session state module first
+            # this will probably be a cookie
+            my $state_module = undef;
+            my $state_options = undef;
+            if (ref($config->{'state'}) && ref($config->{'state'}) eq "HASH") {
+                $state_module = $config->{'state'}->{'driver'};
+                $state_options = $config->{'state'}->{'options'};
+            }
+
+            # set defaults and then load the state module
+            $state_options ||= {};
+            $state_module ||= "Prancer::Session::State::Cookie";
+            Module::Load::load($state_module);
+
+            # set the default for the session name because the plack
+            # default is stupid
+            $state_options->{'session_key'} ||= "PSESSION";
+
+            # load the store module second
+            my $store_module = undef;
+            my $store_options = undef;
+            if (ref($config->{'store'}) && ref($config->{'store'}) eq "HASH") {
+                $store_module = $config->{'store'}->{'driver'};
+                $store_options = $config->{'store'}->{'options'};
+            }
+
+            # set defaults and then load the store module
+            $store_options ||= {};
+            $store_module ||= "Prancer::Session::State::Memory";
+            Module::Load::load($store_module);
+
+            require Plack::Middleware::Session;
+            $app = Plack::Middleware::Session->wrap($app,
+                'state' => $state_module->new($state_options),
+                'store' => $store_module->new($store_options),
+            );
+            logger->info("initialized session handler with state module ${state_module} and store module ${store_module}");
+        } catch {
+            my $error = (defined($_) ? $_ : "unknonw");
+            logger->warn("could not initialize session handler: initialization error: ${error}");
+        };
+    } else {
+        logger->warn("could not initialize session handler: no session handler configured");
+    }
+
+    return $app;
 }
 
 sub _enable_static {
