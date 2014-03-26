@@ -18,6 +18,8 @@ BEGIN {
     use_ok('Prancer::Logger');
     use_ok('Prancer::Logger::Console');
     use_ok('Prancer::Middleware::Logger');
+    use_ok('Prancer::Template');
+    use_ok('Prancer::Template::TemplateToolkit');
 };
 
 done_testing();

@@ -9,7 +9,7 @@ our $VERSION = "1.00";
 use Exporter;
 use parent qw(Exporter);
 
-our @EXPORT_OK = qw(config logger);
+our @EXPORT_OK = qw(config logger template);
 our %EXPORT_TAGS = ('all' => [ @EXPORT_OK ]);
 
 use Carp;
@@ -74,6 +74,10 @@ sub run {
         logger->fatal("could not initialize handler: " . (defined($_) ? $_ : "unknown"));
         croak;
     };
+
+    # pre-load the template engine
+    require Prancer::Template;
+    $self->{'_template'} = Prancer::Template->load(config(get => 'template'));
 
     my $app = sub {
         my $env = shift;
@@ -155,6 +159,17 @@ sub config {
     return;
 }
 
+sub template {
+    my $self = instance();
+
+    # if the template object hasn't been initialized do it now
+    # this will make this work well with CLI apps
+    require Prancer::Template;
+    $self->{'_template'} = Prancer::Template->load(config(get => 'template')) unless defined($self->{'_template'});
+
+    return $self->{'_template'}->render(@_);
+}
+
 sub _enable_static {
     my ($self, $app) = @_;
 
@@ -165,10 +180,9 @@ sub _enable_static {
             # the requested file exists in the configured path. if it does
             # it is served up. if it doesn't then the request will pass
             # through to the handler.
+            die "no path is configured\n" unless defined($config->{'path'});
             my $path = Cwd::realpath($config->{'path'});
-            die "no path is defined\n" unless defined($path) && $path;
             die "${path} does not exist\n" unless (-e $path);
-            die "${path} is not a directory\n" unless (-d $path);
             die "${path} is not readable\n" unless (-r $path);
 
             require Plack::Middleware::Static;
@@ -197,7 +211,7 @@ Prancer - Another PSGI Framework
 =head1 SYNOPSIS
 
 Prancer is yet another PSGI framework. This one is designed to be a bit smaller
-and out of the way than others but it could probably be described best as
+and more out of the way than others but it could probably be described best as
 project derived from L<NIH syndrome|https://en.wikipedia.org/wiki/Not_Invented_Here>.
 
 Here's how it might be used:
@@ -240,7 +254,17 @@ To install this module, run the following commands:
 
 If this ever makes it to CPAN you can install it with this simple command:
 
-    perl -MCPAN -e 'install Dancer2'
+    perl -MCPAN -e 'install Prancer'
+
+These optional libraries will enhance the functionality of Prancer:
+
+=over 4
+
+=item L<Template>
+
+Without this the Prancer template interface will not work.
+
+=back
 
 =head1 METHODS
 
@@ -305,6 +329,18 @@ one copy from affecting other uses. But this could have performance
 implications if you are routinely getting large data structures out if your
 configuration files.
 
+=item template
+
+This gives access to the configured template engine. For example:
+
+    print template("foo.tt", {
+        'title' => 'foobar',
+        'var1' => 'val2',
+    });
+
+If no template engines are configured then this method will always return
+C<undef>.
+
 =back
 
 =head1 CONFIGURATION
@@ -354,6 +390,21 @@ Configures the logging system. For example:
         driver: Prancer::Logger::Console
         options:
             level: debug
+
+=item template
+
+Configures the templating system. For example:
+
+    template:
+        driver: Prancer::Template::TemplateToolkit
+        options:
+            template_dir: /srv/www/site/templates
+            encoding: utf8
+            start_tag: "<%"
+            end_tag: "%>"
+
+For the Template Toolkit plugin, see L<Prancer::Template::TemplateToolkit> for
+more options.
 
 =item static
 

@@ -15,6 +15,7 @@ my @modules = (
     { 'Hash::Merge::Simple' => '0.04' },
     { 'File::Basename'      => '0' },
     { 'File::Slurp'         => '0' },
+    { 'Router::Boom'        => '1.01' },
 );
 
 for (@modules) {

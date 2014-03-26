@@ -8,12 +8,7 @@ use Test::More;
 use version;
 
 my @modules = (
-    { 'Plack::Middleware::Session'            => '0.21' },
-    { 'Plack::Middleware::ServerStatus::Lite' => '0.33' },
-    { 'DBI'                                   => '0' },
-    { 'DBD::Pg'                               => '0' },
-    { 'Template'                              => '0' },
-    { 'Router::Boom'                          => '1.01' },
+    { 'Template' => '0' },
 );
 
 for (@modules) {
