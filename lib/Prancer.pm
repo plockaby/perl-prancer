@@ -66,53 +66,6 @@ sub instance {
     croak "must create an instance of " . __PACKAGE__ . " before it may be used";
 }
 
-sub run {
-    my $self = shift;
-
-    try {
-        Module::Load::load($self->{'_handler'});
-    } catch {
-        logger->fatal("could not initialize handler: " . (defined($_) ? $_ : "unknown"));
-        croak;
-    };
-
-    # pre-load the template engine
-    require Prancer::Template;
-    $self->{'_template'} = Prancer::Template->load(config(get => 'template'));
-
-    # pre-load the database engine
-    require Prancer::Database;
-    $self->{'_database'} = Prancer::Database->load(config(get => 'database'));
-
-    my $app = sub {
-        my $env = shift;
-
-        # create a context to pass to the request
-        my $context = Prancer::Context->new(
-            'env'      => $env,
-            'request'  => Prancer::Request->new($env),
-            'response' => Prancer::Response->new($env),
-            'session'  => Prancer::Session->new($env),
-        );
-
-        my $handler = $self->{'_handler'};
-        my $copy = $handler->new($context, @{$self->{'_handler_args'}});
-        return $copy->handle($env);
-    };
-
-    # capture warnings and logging messages and send them to the configured logger
-    require Prancer::Middleware::Logger;
-    $app = Prancer::Middleware::Logger->wrap($app);
-
-    # enable user sessions
-    $app = $self->_enable_sessions($app);
-
-    # serve up static files if configured to do so
-    $app = $self->_enable_static($app);
-
-    return $app;
-}
-
 sub logger {
     my $self = instance();
     return $self->{'_logger'};
@@ -198,6 +151,53 @@ sub database {
     }
 
     return $self->{'_database'}->{$connection}->handle();
+}
+
+sub run {
+    my $self = shift;
+
+    try {
+        Module::Load::load($self->{'_handler'});
+    } catch {
+        logger->fatal("could not initialize handler: " . (defined($_) ? $_ : "unknown"));
+        croak;
+    };
+
+    # pre-load the template engine
+    require Prancer::Template;
+    $self->{'_template'} = Prancer::Template->load(config(get => 'template'));
+
+    # pre-load the database engine
+    require Prancer::Database;
+    $self->{'_database'} = Prancer::Database->load(config(get => 'database'));
+
+    my $app = sub {
+        my $env = shift;
+
+        # create a context to pass to the request
+        my $context = Prancer::Context->new(
+            'env'      => $env,
+            'request'  => Prancer::Request->new($env),
+            'response' => Prancer::Response->new($env),
+            'session'  => Prancer::Session->new($env),
+        );
+
+        my $handler = $self->{'_handler'};
+        my $copy = $handler->new($context, @{$self->{'_handler_args'}});
+        return $copy->handle($env);
+    };
+
+    # capture warnings and logging messages and send them to the configured logger
+    require Prancer::Middleware::Logger;
+    $app = Prancer::Middleware::Logger->wrap($app);
+
+    # enable user sessions
+    $app = $self->_enable_sessions($app);
+
+    # serve up static files if configured to do so
+    $app = $self->_enable_static($app);
+
+    return $app;
 }
 
 sub _enable_sessions {
