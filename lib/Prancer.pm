@@ -353,6 +353,14 @@ Without this the Prancer template interface will not work.
 Without this the Prancer database interface will not work. You also will need
 a database driver like L<DBD::Pg>.
 
+=item L<Plack::Middleware::Session>
+
+Without this the Prancer session support will not work. If you want to use the
+YAML session storage you will also need to have L<YAML> (preferably
+L<YAML::XS>) installed. If you want support to write sessions do the database
+you will also need L<DBI> installed along with a database driver like
+L<DBD::Pg>.
+
 =back
 
 =head1 METHODS
@@ -447,6 +455,24 @@ In all cases, C<$dbh> will be a reference to a L<DBI> handle and anything that
 can be done with L<DBI> can be done here.
 
 If no databases are configured then this method will always return C<undef>.
+
+=item session
+
+Configures the session handler. For example:
+
+    session:
+        state:
+            driver: Prancer::Session::State::Cookie
+            options:
+                key: PSESSION
+        store:
+            driver: Prancer::Session::Store::YAML
+            options:
+                path: /tmp/prancer/sessions
+
+See L<Prancer::Session::State::Cookie>, L<Prancer::Session::Store::Memory>,
+L<Prancer::Session::Store::YAML> and L<Prancer::Session::Store::Database> for
+more options.
 
 =back
 
