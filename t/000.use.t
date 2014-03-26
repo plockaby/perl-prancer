@@ -20,6 +20,9 @@ BEGIN {
     use_ok('Prancer::Middleware::Logger');
     use_ok('Prancer::Template');
     use_ok('Prancer::Template::TemplateToolkit');
+    use_ok('Prancer::Database');
+    use_ok('Prancer::Database::Driver');
+    use_ok('Prancer::Database::Driver::Pg');
 };
 
 done_testing();

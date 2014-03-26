@@ -54,6 +54,15 @@ Prancer::Template
 =head1 SYNOPSIS
 
 This module should not be used directly to access templates. Instead, one
-should use L<Prancer>.
+should use L<Prancer>. For configuration options, please refer to the
+documentation for the specific template engine you wish to use.
+
+=head1 SEE ALSO
+
+=over 4
+
+=item1 L<Prancer::Template::TemplateToolkit>
+
+=back
 
 =cut

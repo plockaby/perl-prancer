@@ -9,7 +9,7 @@ our $VERSION = "1.00";
 use Exporter;
 use parent qw(Exporter);
 
-our @EXPORT_OK = qw(config logger template);
+our @EXPORT_OK = qw(config logger template database);
 our %EXPORT_TAGS = ('all' => [ @EXPORT_OK ]);
 
 use Carp;
@@ -78,6 +78,10 @@ sub run {
     # pre-load the template engine
     require Prancer::Template;
     $self->{'_template'} = Prancer::Template->load(config(get => 'template'));
+
+    # pre-load the database engine
+    require Prancer::Database;
+    $self->{'_database'} = Prancer::Database->load(config(get => 'database'));
 
     my $app = sub {
         my $env = shift;
@@ -168,6 +172,27 @@ sub template {
     $self->{'_template'} = Prancer::Template->load(config(get => 'template')) unless defined($self->{'_template'});
 
     return $self->{'_template'}->render(@_);
+}
+
+sub database {
+    my $self = instance();
+    my $connection = shift || "default";
+
+    # if the database object hasn't been initialized do it now
+    # this will make this work well with CLI apps
+    require Prancer::Database;
+    $self->{'_database'} = Prancer::Database->load(config(get => 'database')) unless defined($self->{'_database'});
+
+    if (!defined($connection)) {
+        logger->fatal("could not get connection to database: no connection name given");
+        croak;
+    }
+    if (!exists($self->{'_database'}->{$connection})) {
+        logger->fatal("could not get connection to database: no connection named '${connection}'");
+        croak;
+    }
+
+    return $self->{'_database'}->{$connection}->handle();
 }
 
 sub _enable_static {
@@ -264,6 +289,11 @@ These optional libraries will enhance the functionality of Prancer:
 
 Without this the Prancer template interface will not work.
 
+=item L<DBI>
+
+Without this the Prancer database interface will not work. You also will need
+a database driver like L<DBD::Pg>.
+
 =back
 
 =head1 METHODS
@@ -341,6 +371,24 @@ This gives access to the configured template engine. For example:
 If no template engines are configured then this method will always return
 C<undef>.
 
+=item database
+
+This gives access to the configured databases. For example:
+
+    # handle to the database configured as 'default'
+    my $dbh = database;
+
+    # handle to the database configured as 'foo'
+    my $dbh = database('foo');
+
+    # prepare a statement on connection 'default'
+    my $sth = database->prepare("SELECT * FROM foo");
+
+In all cases, C<$dbh> will be a reference to a L<DBI> handle and anything that
+can be done with L<DBI> can be done here.
+
+If no databases are configured then this method will always return C<undef>.
+
 =back
 
 =head1 CONFIGURATION
@@ -387,16 +435,18 @@ To support the components of Prancer, these keys are used:
 Configures the logging system. For example:
 
     logger:
-        driver: Prancer::Logger::Console
+        driver: Prancer::Logger::WhateverLogger
         options:
             level: debug
+
+For the console logger, see L<Prancer::Logger::Console> for more options.
 
 =item template
 
 Configures the templating system. For example:
 
     template:
-        driver: Prancer::Template::TemplateToolkit
+        driver: Prancer::Template::WhateverEngine
         options:
             template_dir: /srv/www/site/templates
             encoding: utf8
@@ -405,6 +455,20 @@ Configures the templating system. For example:
 
 For the Template Toolkit plugin, see L<Prancer::Template::TemplateToolkit> for
 more options.
+
+=item database
+
+Configures database connections. For example:
+
+    database:
+        default:
+            driver: Prancer::Database::Driver::WhateverDriver
+            options:
+                username: test
+                password: test
+                database: test
+
+See L<Prancer::Database> for more options.
 
 =item static
 
@@ -442,6 +506,11 @@ L<Prancer::Request>, L<Prancer::Request::Upload> and L<Prancer::Response> are
 but thin wrappers to and reimplementations of L<Plack::Request>,
 L<Plack::Request::Upload> and L<Prancer::Response>. Thank you to Tatsuhiko
 Miyagawa.
+
+=item
+
+L<Prancer::Database> is derived directly from L<Dancer::Plugin::Database>.
+Thank you to David Precious.
 
 =back
 

@@ -36,6 +36,15 @@ Prancer::Logger
 =head1 SYNOPSIS
 
 This module should not be used directly to access the logger. Instead, one
-should use L<Prancer>.
+should use L<Prancer>. For configuration options, please refer to the
+documentation for the specific logger you wish to use.
+
+=head1 SEE ALSO
+
+=over 4
+
+=item L<Prancer::Logger::Console>
+
+=back
 
 =cut
