@@ -10,8 +10,9 @@ use Carp;
 use Try::Tiny;
 use Module::Load ();
 use Router::Boom::Method;
+use Prancer;
 
-our @EXPORT_OK = qw(context mount dispatch);
+our @EXPORT_OK = qw(context mount dispatch config logger database template);
 our %EXPORT_TAGS = ('all' => [ @EXPORT_OK ]);
 
 sub new {
@@ -40,6 +41,30 @@ sub new {
 sub handle {
     my ($self, $env) = @_;
     croak "method 'handle' must be implemented by subclass to " . __PACKAGE__;
+}
+
+## no critic (ProhibitUnusedPrivateSubroutines)
+sub _config {
+    my $self = shift;
+    return Prancer::config(@_);
+}
+
+## no critic (ProhibitUnusedPrivateSubroutines)
+sub _logger {
+    my $self = shift;
+    return Prancer::logger(@_);
+}
+
+## no critic (ProhibitUnusedPrivateSubroutines)
+sub _database {
+    my $self = shift;
+    return Prancer::database(@_);
+}
+
+## no critic (ProhibitUnusedPrivateSubroutines)
+sub _template {
+    my $self = shift;
+    return Prancer::template(@_);
 }
 
 ## no critic (ProhibitUnusedPrivateSubroutines)
@@ -134,6 +159,22 @@ You should probably export C<:all>. That will give you quick access to these
 methods.
 
 =over 4
+
+=item config
+
+Passes through to C<Prancer::config>.
+
+=item logger
+
+Passes through to C<Prancer::logger>.
+
+=item database
+
+Passes through to C<Prancer::database>.
+
+=item template
+
+Passes through to C<Prancer::template>.
 
 =item context
 

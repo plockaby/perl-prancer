@@ -83,42 +83,22 @@ sub config {
     );
 
     if (defined($args{'remove'})) {
-        return delete($self->{'_config'}->{$args{'remove'}});
+        return $self->{'_config'}->remove($args{'remove'});
     }
 
     if (defined($args{'has'})) {
-        return exists($self->{'_config'}->{$args{'has'}});
+        return $self->{'_config'}->has($args{'has'});
     }
 
     if (defined($args{'set'})) {
-        my $old = undef;
-
-        # only bother returning a value if the method was called in a non-void context
-        $old = config(get => $args{'set'}) if defined(wantarray());
-
-        if (ref($args{'value'})) {
-            # clone the value we were given to avoid inadvertently modifying
-            # the configuration through references
-            $self->{'_config'}->{$args{'set'}} = dclone($args{'value'});
-        } else {
-            # can't clone non-references
-            $self->{'_config'}->{$args{'set'}} = $args{'value'};
-        }
-
-        return $old;
+        return $self->{'_config'}->set($args{'set'}, $args{'value'});
     }
 
     if (defined($args{'get'})) {
-        # only bother returning a value if the method was called in a non-void context
-        if (defined(wantarray()) && defined($self->{'_config'}->{$args{'get'}})) {
-            # clone to avoid inadvertently changing values through references
-            my $value = $self->{'_config'}->{$args{'get'}};
-            return dclone($value) if ref($value);
-            return $value;
-        }
+        return $self->{'_config'}->get($args{'get'});
     }
 
-    return;
+    return $self->{'_config'};
 }
 
 sub template {

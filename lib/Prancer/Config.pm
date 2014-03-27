@@ -6,14 +6,60 @@ use warnings FATAL => 'all';
 use File::Spec;
 use Config::Any;
 use Hash::Merge::Simple;
+use Storable qw(dclone);
 use Try::Tiny;
 
 sub load {
     my ($class, $location) = @_;
     my $self = bless({}, $class);
 
+    # find config files, load them
     my @files = $self->_build_file_list($location);
-    return $self->_load_config_files(@files);
+    $self->{'_config'} = $self->_load_config_files(@files);
+
+    return $self;
+}
+
+sub has {
+    my ($self, $key) = @_;
+    return exists($self->{'_config'}->{$key});
+}
+
+sub get {
+    my ($self, $key) = @_;
+
+    # only return things if the are running in a non-void context
+    if (defined(wantarray()) && defined($self->{'_config'}->{$key})) {
+        # make a clone of the value to avoid inadvertently changing things
+        # via references
+        my $value = $self->{'_config'}->{$key};
+        return dclone($value) if ref($value);
+        return $value;
+    }
+
+    return;
+}
+
+sub set {
+    my ($self, $key, $value) = @_;
+
+    my $old = undef;
+    $old = $self->get($key) if defined(wantarray());
+
+    if (ref($value)) {
+        # make a copy of the original value to avoid inadvertently changing
+        # things via references
+        $self->{'_config'}->{$key} = dclone($value);
+    } else {
+        # can't clone non-references
+        $self->{'_config'}->{$key} = $value;
+    }
+    return $old;
+}
+
+sub remove {
+    my ($self, $key) = @_;
+    return delete($self->{'_session'}->{$key});
 }
 
 sub _build_file_list {
