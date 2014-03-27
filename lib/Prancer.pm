@@ -214,7 +214,7 @@ sub _enable_sessions {
 
             # set defaults and then load the store module
             $store_options ||= {};
-            $store_module ||= "Prancer::Session::State::Memory";
+            $store_module ||= "Prancer::Session::Store::Memory";
             Module::Load::load($store_module);
 
             require Plack::Middleware::Session;
