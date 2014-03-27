@@ -47,7 +47,7 @@ sub new {
     $self->{'_config'} = Prancer::Config->load($config_path);
 
     # load the configured logger
-    $self->{'_logger'} = Prancer::Logger->load($self->{'_config'}->{'logger'});
+    $self->{'_logger'} = Prancer::Logger->load($self->{'_config'}->remove('logger'));
 
     $$instance = $self;
     return $self;
@@ -73,31 +73,6 @@ sub logger {
 
 sub config {
     my $self = instance();
-    my %args = (
-        'has' => undef,
-        'get' => undef,
-        'set' => undef,
-        'value' => undef,
-        'remove' => undef,
-        @_,
-    );
-
-    if (defined($args{'remove'})) {
-        return $self->{'_config'}->remove($args{'remove'});
-    }
-
-    if (defined($args{'has'})) {
-        return $self->{'_config'}->has($args{'has'});
-    }
-
-    if (defined($args{'set'})) {
-        return $self->{'_config'}->set($args{'set'}, $args{'value'});
-    }
-
-    if (defined($args{'get'})) {
-        return $self->{'_config'}->get($args{'get'});
-    }
-
     return $self->{'_config'};
 }
 
@@ -107,7 +82,7 @@ sub template {
     # if the template object hasn't been initialized do it now
     # this will make this work well with CLI apps
     require Prancer::Template;
-    $self->{'_template'} = Prancer::Template->load(config(get => 'template')) unless defined($self->{'_template'});
+    $self->{'_template'} = Prancer::Template->load(config->remove('template')) unless defined($self->{'_template'});
 
     return $self->{'_template'}->render(@_);
 }
@@ -119,7 +94,7 @@ sub database {
     # if the database object hasn't been initialized do it now
     # this will make this work well with CLI apps
     require Prancer::Database;
-    $self->{'_database'} = Prancer::Database->load(config(get => 'database')) unless defined($self->{'_database'});
+    $self->{'_database'} = Prancer::Database->load(config->remove('database')) unless defined($self->{'_database'});
 
     if (!defined($connection)) {
         logger->fatal("could not get connection to database: no connection name given");
@@ -145,11 +120,11 @@ sub run {
 
     # pre-load the template engine
     require Prancer::Template;
-    $self->{'_template'} = Prancer::Template->load(config(get => 'template'));
+    $self->{'_template'} = Prancer::Template->load(config->remove('template'));
 
     # pre-load the database engine
     require Prancer::Database;
-    $self->{'_database'} = Prancer::Database->load(config(get => 'database'));
+    $self->{'_database'} = Prancer::Database->load(config->remove('database'));
 
     my $app = sub {
         my $env = shift;
@@ -183,7 +158,7 @@ sub run {
 sub _enable_sessions {
     my ($self, $app) = @_;
 
-    my $config = config(get => 'session');
+    my $config = config->remove('session');
     if ($config) {
         try {
             # load the session state module first
@@ -237,7 +212,7 @@ sub _enable_sessions {
 sub _enable_static {
     my ($self, $app) = @_;
 
-    my $config = config(get => 'static');
+    my $config = config->remove('static');
     if ($config) {
         try {
             # this intercepts requests for /static/* and checks to see if
@@ -391,10 +366,10 @@ This gives access to the logger. For example:
 
 This gives access to the configuration. For example:
 
-    config(has => 'foo');
-    config(get => 'foo');
-    config(set => 'foo', value => 'bar');
-    config(remove => 'foo');
+    config->has('foo');
+    config->get('foo');
+    config->set('foo', value => 'bar');
+    config->remove('foo');
 
 Any changes to the configuration do not persist back to the actual
 configuration file. Additionally they do not persist between threads or

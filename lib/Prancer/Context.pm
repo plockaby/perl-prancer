@@ -19,33 +19,17 @@ sub env {
     return $self->{'_env'};
 }
 
+sub template {
+    my ($self, $template, $vars) = @_;
+
+
+
+
+    return Prancer::template($template, $vars);
+}
+
 sub session {
     my $self = shift;
-    my %args = (
-        'has' => undef,
-        'get' => undef,
-        'set' => undef,
-        'value' => undef,
-        'remove' => undef,
-        @_,
-    );
-
-    if (defined($args{'remove'})) {
-        return $self->{'_session'}->remove($args{'remove'});
-    }
-
-    if (defined($args{'has'})) {
-        return $self->{'_session'}->has($args{'has'});
-    }
-
-    if (defined($args{'set'})) {
-        return $self->{'_session'}->set($args{'set'}, $args{'value'});
-    }
-
-    if (defined($args{'get'})) {
-        return $self->{'_session'}->get($args{'get'});
-    }
-
     return $self->{'_session'};
 }
 
