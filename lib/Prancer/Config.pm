@@ -59,7 +59,7 @@ sub set {
 
 sub remove {
     my ($self, $key) = @_;
-    return delete($self->{'_session'}->{$key});
+    return delete($self->{'_config'}->{$key});
 }
 
 sub _build_file_list {
