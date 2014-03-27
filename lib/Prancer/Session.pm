@@ -72,6 +72,11 @@ sub expire {
     return;
 }
 
+sub as_hashref {
+    my $self = shift;
+    return $self->{'_session'};
+}
+
 1;
 
 =head1 NAME

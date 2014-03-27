@@ -3,6 +3,9 @@ package Prancer::Context;
 use strict;
 use warnings FATAL => 'all';
 
+use Prancer;
+use Hash::Merge::Simple;
+
 sub new {
     my $class = shift;
     my %args = @_;
@@ -22,8 +25,15 @@ sub env {
 sub template {
     my ($self, $template, $vars) = @_;
 
+    # merge config into the template
+    # for the record: i hate this syntax
+    $vars = Hash::Merge::Simple->merge({'config' => Prancer::config()->as_hashref()}, $vars);
 
+    # merge session into the template
+    $vars = Hash::Merge::Simple->merge({'session' => $self->session->as_hashref()}, $vars);
 
+    # merge params into the template
+    $vars = Hash::Merge::Simple->merge({'params' => $self->params->as_hashref_mixed()}, $vars);
 
     return Prancer::template($template, $vars);
 }
@@ -153,14 +163,25 @@ pass it to other packages to make it available.
 
 Returns the PSGI environment for the request.
 
+=item template
+
+This is a magical wrapper to C<Prancer::template()> in that it works by calling
+C<Prancer::template> but it will merge C<params>, C<config>, and C<session>
+into the list of template variables using their respective names as the first
+key. This allows you to write this in your template:
+
+    <% params.bar %>
+    <% config.foo.bar %>
+    <% session.asdf.fdsa %>
+
 =item session
 
 This gives access to the session in various ways. For example:
 
-    my $does_foo_exist = context->session(has => 'foo');
-    my $foo = context->session(get => 'foo');
-    context->session(set => 'foo', value => 'bar');
-    context->session(remove => 'foo');
+    my $does_foo_exist = context->session->has('foo');
+    my $foo = context->session->get('foo');
+    context->session->set('foo', 'bar');
+    context->session->remove('foo');
 
 Changes made to the session are persisted immediately to whatever medium
 backs your sessions.

@@ -87,6 +87,11 @@ sub _build_file_list {
     return @files;
 }
 
+sub as_hashref {
+    my $self = shift;
+    return $self->{'_config'};
+}
+
 sub _load_config_files {
     my ($self, @files) = @_;
 
