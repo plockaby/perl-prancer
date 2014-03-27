@@ -43,7 +43,6 @@ sub get {
 
 sub set {
     my ($self, $key, $value) = @_;
-    delete($self->{'_options'}->{'no_store'});
 
     my $old = undef;
     $old = $self->get($key) if defined(wantarray());
@@ -61,7 +60,6 @@ sub set {
 
 sub remove {
     my ($self, $key) = @_;
-    delete($self->{'_options'}->{'no_store'});
     return delete($self->{'_session'}->{$key});
 }
 
