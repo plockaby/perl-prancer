@@ -162,19 +162,19 @@ methods.
 
 =item config
 
-Passes through to C<Prancer::config>.
+Passes through to C<Prancer::config>. This is made available to subclasses.
 
 =item logger
 
-Passes through to C<Prancer::logger>.
+Passes through to C<Prancer::logger>. This is made available to subclasses.
 
 =item database
 
-Passes through to C<Prancer::database>.
+Passes through to C<Prancer::database>. This is made available to subclasses.
 
 =item template
 
-Passes through to C<Prancer::template>.
+Passes through to C<Prancer::template>. This is made available to subclasses.
 
 =item context
 
