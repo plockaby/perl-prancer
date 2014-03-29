@@ -43,7 +43,6 @@ sub new {
 
 sub handle {
     my $self = shift;
-    logger->debug("returning database handle for connection '${\$self->{'_connection'}}'");
 
     # to be fork safe and thread safe, use a combination of the PID and TID (if running
     # with use threads) to make sure no two processes/threads share a handle.
