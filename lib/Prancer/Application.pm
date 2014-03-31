@@ -152,6 +152,12 @@ the instance of your class created for this request and C<$env> for the
 request. You probably don't need to use C<$env> because the methods detailed
 below should give you everything you need, especially C<context>.
 
+=head1 EXPORTABLE
+
+The following methods are exportable: C<context>, C<mount>, C<dispatch>,
+C<config>, C<logger>, C<database>, C<template>. They can all be exported at
+once with C<:all>.
+
 =head1 METHODS
 
 By default this package exports nothing. But that makes it difficult to use.

@@ -318,6 +318,11 @@ L<DBD::Pg>.
 
 =back
 
+=head1 EXPORTABLE
+
+The following methods are exportable: C<config>, C<logger>, C<database>,
+C<template>. They can all be exported at once using C<:all>.
+
 =head1 METHODS
 
 With the exception of C<-E<gt>new> and C<-E<gt>run>, all methods should be

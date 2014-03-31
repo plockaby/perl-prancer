@@ -35,6 +35,14 @@ Here's how it might be used:
         return dispatch;
     }
 
+    ==> mytool.pl
+
+    use Prancer qw(:all);
+
+    Prancer->new("/path/to/confdir");
+    my $foo = config->get("foo");
+    config->set("foo", "bar");
+
 INSTALLATION
 
 To install this module, run the following commands:
@@ -52,7 +60,6 @@ These optional libraries will enhance the functionality of Prancer:
 
     DBI
     Template
-    Router::Boom::Method
     Plack::Middleware::Session
     Plack::Middleware::ServerStatus::Lite
 
@@ -75,7 +82,7 @@ projects:
 
 COPYRIGHT
 
-Copyright 2013, 2014 Paul Lockaby. All rights reserved.
+Copyright 2014 Paul Lockaby. All rights reserved.
 
 This library is free software; you can redistribute it and/or modify it under
 the same terms as Perl itself.
