@@ -221,8 +221,8 @@ sub _enable_static {
             # through to the handler.
             die "no path is configured\n" unless defined($config->{'path'});
             my $path = Cwd::realpath($config->{'path'});
-            die "${path} does not exist\n" unless (-e $path);
-            die "${path} is not readable\n" unless (-r $path);
+            die $config->{'path'} . " does not exist\n" unless defined($path);
+            die $config->{'path'} . " is not readable\n" unless (-r $path);
 
             require Plack::Middleware::Static;
             $app = Plack::Middleware::Static->wrap($app,
