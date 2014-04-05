@@ -30,7 +30,7 @@ sub get {
     my ($self, $key, $default) = @_;
 
     # only return things if the are running in a non-void context
-    if (defined(wantarray()))
+    if (defined(wantarray())) {
         if (exists($self->{'_session'}->{$key})) {
             # make a clone of the value to avoid inadvertently changing things
             # via references
