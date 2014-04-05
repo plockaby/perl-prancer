@@ -373,7 +373,8 @@ This gives access to the configuration. For example:
 
     config->has('foo');
     config->get('foo');
-    config->set('foo', value => 'bar');
+    config->get('foo', 'some default value if foo does not exist');
+    config->set('foo', 'bar');
     config->remove('foo');
 
 Any changes to the configuration do not persist back to the actual
@@ -454,7 +455,7 @@ configuration file.
 Arbitrary configuration directives can be put into your configuration files
 and they can be accessed like this:
 
-    config(get => 'foo');
+    config->get('foo');
 
 The configuration accessors will only give you configuration directives found
 at the root of the configuration file. So if you use any data structures you
@@ -467,7 +468,7 @@ this:
 
 Then you will only be able to get the value to C<bar1> like this:
 
-    my $foo = config(get => 'foo')->{'bar1'};
+    my $foo = config->get('foo')->{'bar1'};
 
 =head2 Reserved Configuration Options
 
