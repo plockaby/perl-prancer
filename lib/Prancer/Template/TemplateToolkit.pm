@@ -46,7 +46,7 @@ sub new {
         'PRE_PROCESS'  => $config->{'pre_process'},
         'POST_PROCESS' => $config->{'post_process'},
         'CACHE_SIZE'   => $config->{'cache_size'},
-        'COMPILE_EXT'  => 'ttc',
+        'COMPILE_EXT'  => '.ttc',
         'COMPILE_DIR'  => $cache_path,
     });
     $self->{'_engine'} = $engine;
