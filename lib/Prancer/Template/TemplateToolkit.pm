@@ -48,6 +48,7 @@ sub new {
         'CACHE_SIZE'   => $config->{'cache_size'},
         'COMPILE_EXT'  => '.ttc',
         'COMPILE_DIR'  => $cache_path,
+        'PLUGIN_BASE'  => $config->{'plugin_base'},
     });
     $self->{'_engine'} = $engine;
 
