@@ -68,7 +68,6 @@ These optional libraries will enhance the functionality of Prancer:
 
     DBI
     Template
-    Plack::Middleware::Session
 
 #Credits
 
