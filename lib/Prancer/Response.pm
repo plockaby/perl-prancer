@@ -140,11 +140,11 @@ sub _bake_cookie {
     my ($self, $key, $value) = @_;
 
     my @cookie = (URI::Escape::uri_escape($key) . "=" . URI::Escape::uri_escape($value->{'value'}));
-    push(@cookie, "domain="  . $value->{'domain'})                    if $value->{'domain'};
-    push(@cookie, "path="    . $value->{'path'})                      if $value->{'path'};
-    push(@cookie, "expires=" . $self->_cookie_date($self->expires())) if $value->{'expires'};
-    push(@cookie, "secure")                                           if $value->{'secure'};
-    push(@cookie, "HttpOnly")                                         if $value->{'httponly'};
+    push(@cookie, "domain="  . $value->{'domain'})                       if $value->{'domain'};
+    push(@cookie, "path="    . $value->{'path'})                         if $value->{'path'};
+    push(@cookie, "expires=" . $self->_cookie_date($value->{'expires'})) if $value->{'expires'};
+    push(@cookie, "secure")                                              if $value->{'secure'};
+    push(@cookie, "HttpOnly")                                            if $value->{'httponly'};
     return join("; ", @cookie);
 
 }
