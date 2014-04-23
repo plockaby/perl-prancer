@@ -19,3 +19,5 @@ Revision history for Perl extension Prancer
 	- fix TT plugin extension
 	- doc updates
 
+0.06
+	- removing template code

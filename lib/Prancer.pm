@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use version;
-our $VERSION = "0.05";
+our $VERSION = "0.06";
 
 use Exporter;
 use parent qw(Exporter);
