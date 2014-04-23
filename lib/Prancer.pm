@@ -9,7 +9,7 @@ our $VERSION = "0.05";
 use Exporter;
 use parent qw(Exporter);
 
-our @EXPORT_OK = qw(config logger template database);
+our @EXPORT_OK = qw(config logger database);
 our %EXPORT_TAGS = ('all' => [ @EXPORT_OK ]);
 
 use Carp;
@@ -76,17 +76,6 @@ sub config {
     return $self->{'_config'};
 }
 
-sub template {
-    my $self = instance();
-
-    # if the template object hasn't been initialized do it now
-    # this will make this work well with CLI apps
-    require Prancer::Template;
-    $self->{'_template'} = Prancer::Template->load(config->remove('template')) unless defined($self->{'_template'});
-
-    return $self->{'_template'}->render(@_);
-}
-
 sub database {
     my $self = instance();
     my $connection = shift || "default";
@@ -117,10 +106,6 @@ sub run {
         logger->fatal("could not initialize handler: " . (defined($_) ? $_ : "unknown"));
         croak;
     };
-
-    # pre-load the template engine
-    require Prancer::Template;
-    $self->{'_template'} = Prancer::Template->load(config->remove('template'));
 
     # pre-load the database engine
     require Prancer::Database;
@@ -299,10 +284,6 @@ These optional libraries will enhance the functionality of Prancer:
 
 =over 4
 
-=item L<Template>
-
-Without this the Prancer template interface will not work.
-
 =item L<DBI>
 
 Without this the Prancer database interface will not work. You also will need
@@ -320,8 +301,8 @@ L<DBD::Pg>.
 
 =head1 EXPORTABLE
 
-The following methods are exportable: C<config>, C<logger>, C<database>,
-C<template>. They can all be exported at once using C<:all>.
+The following methods are exportable: C<config>, C<logger>, and C<database>.
+They can all be exported at once using C<:all>.
 
 =head1 METHODS
 
@@ -386,18 +367,6 @@ is reference, the reference will be cloned by Storable to prevent changes to
 one copy from affecting other uses. But this could have performance
 implications if you are routinely getting large data structures out if your
 configuration files.
-
-=item template
-
-This gives access to the configured template engine. For example:
-
-    print template("foo.tt", {
-        'title' => 'foobar',
-        'var1' => 'val2',
-    });
-
-If no template engines are configured then this method will always return
-C<undef>.
 
 =item database
 
@@ -486,21 +455,6 @@ Configures the logging system. For example:
             level: debug
 
 For the console logger, see L<Prancer::Logger::Console> for more options.
-
-=item template
-
-Configures the templating system. For example:
-
-    template:
-        driver: Prancer::Template::WhateverEngine
-        options:
-            template_dir: /srv/www/site/templates
-            encoding: utf8
-            start_tag: "<%"
-            end_tag: "%>"
-
-For the Template Toolkit plugin, see L<Prancer::Template::TemplateToolkit> for
-more options.
 
 =item database
 
