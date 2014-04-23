@@ -21,3 +21,5 @@ Revision history for Perl extension Prancer
 
 0.06
 	- removing template code
+	- adding sqlite/mysql connectors
+
