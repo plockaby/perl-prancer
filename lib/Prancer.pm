@@ -386,24 +386,6 @@ can be done with L<DBI> can be done here.
 
 If no databases are configured then this method will always return C<undef>.
 
-=item session
-
-Configures the session handler. For example:
-
-    session:
-        state:
-            driver: Prancer::Session::State::Cookie
-            options:
-                key: PSESSION
-        store:
-            driver: Prancer::Session::Store::YAML
-            options:
-                path: /tmp/prancer/sessions
-
-See L<Prancer::Session::State::Cookie>, L<Prancer::Session::Store::Memory>,
-L<Prancer::Session::Store::YAML> and L<Prancer::Session::Store::Database> for
-more options.
-
 =back
 
 =head1 CONFIGURATION
@@ -469,6 +451,24 @@ Configures database connections. For example:
                 database: test
 
 See L<Prancer::Database> for more options.
+
+=item session
+
+Configures the session handler. For example:
+
+    session:
+        state:
+            driver: Prancer::Session::State::Cookie
+            options:
+                key: PSESSION
+        store:
+            driver: Prancer::Session::Store::YAML
+            options:
+                path: /tmp/prancer/sessions
+
+See L<Prancer::Session::State::Cookie>, L<Prancer::Session::Store::Memory>,
+L<Prancer::Session::Store::YAML> and L<Prancer::Session::Store::Database> for
+more options.
 
 =item static
 
