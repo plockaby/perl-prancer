@@ -19,7 +19,7 @@ Revision history for Perl extension Prancer
 	- fix TT plugin extension
 	- doc updates
 
-0.06
+0.06 Sun Apr 27 07:30:27 UTC 2014
 	- removing template code
 	- adding sqlite/mysql connectors
 
