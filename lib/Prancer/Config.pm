@@ -29,18 +29,33 @@ sub get {
 
     # only return things if the are running in a non-void context
     if (defined(wantarray())) {
+        my $value = undef;
+
         if (exists($self->{'_config'}->{$key})) {
-            # make a clone of the value to avoid inadvertently changing things
-            # through inadvertent references
-            my $value = $self->{'_config'}->{$key};
-            return unless defined($value);
-            return dclone($value) if ref($value);
-            return $value;
+            $value = $self->{'_config'}->{$key};
         } else {
-            return unless defined($default);
-            return dclone($default) if ref($default);
-            return $default;
+            $value = $default;
         }
+
+        # nothing to return
+        return unless defined($value);
+
+        # make a clone to avoid changing things
+        # through inadvertent references.
+        $value = dclone($value) if ref($value);
+
+        if (wantarray() && ref($value)) {
+            # return a value rather than a reference
+            if (ref($value) eq 'HASH') {
+                return %{$value};
+            }
+            if (ref($value) eq 'ARRAY') {
+                return @{$value};
+            }
+        }
+
+        # return a reference
+        return $value;
     }
 
     return;
@@ -60,12 +75,39 @@ sub set {
         # can't clone non-references
         $self->{'_config'}->{$key} = $value;
     }
+
+    if (wantarray() && ref($old)) {
+        # return a value rather than a reference
+        if (ref($old) eq 'HASH') {
+            return %{$old};
+        }
+        if (ref($old) eq 'ARRAY') {
+            return @{$old};
+        }
+    }
+
     return $old;
 }
 
 sub remove {
     my ($self, $key) = @_;
-    return delete($self->{'_config'}->{$key});
+
+    my $old = undef;
+    $old = $self->get($key) if defined(wantarray());
+
+    delete($self->{'_config'}->{$key});
+
+    if (wantarray() && ref($old)) {
+        # return a value rather than a reference
+        if (ref($old) eq 'HASH') {
+            return %{$old};
+        }
+        if (ref($old) eq 'ARRAY') {
+            return @{$old};
+        }
+    }
+
+    return $old;
 }
 
 sub _build_file_list {
@@ -75,7 +117,7 @@ sub _build_file_list {
     return [] unless defined($path);
 
     # if the path is a file or a link then there is only one config file
-    return [$path] if (-e $path && (-f _ || -l _));
+    return [ $path ] if (-e $path && (-f $path || -l $path));
 
     # since we already handled files/symlinks then if the path is not a
     # directory then there is very little we can do
@@ -149,7 +191,7 @@ sub _normalize_file_path {
 
 # stolen from Hash::Merge::Simple
 sub merge {
-    my ($self, $left, @right) = @_;
+    my ($left, @right) = @_;
 
     return $left unless @right;
     return merge($left, merge(@right)) if @right > 1;
