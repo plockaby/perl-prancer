@@ -45,6 +45,6 @@
          }
       }
    },
-   "release_status" : "stable",
-   "version" : "0.09"
+   "release_status" : "experimental",
+   "version" : "1.00"
 }
