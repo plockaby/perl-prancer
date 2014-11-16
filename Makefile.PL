@@ -11,15 +11,11 @@ WriteMakefile(
     'VERSION_FROM'  => 'lib/Prancer.pm',
     'PREREQ_PM'     => {
         'Plack'                      => '1.0029',
-        'Plack::Middleware::Session' => '0.21',
+        'Web::Simple'                => '0.30',
         'Try::Tiny'                  => '0',
         'Config::Any'                => '0',
-        'Hash::Merge::Simple'        => '0',
         'Hash::MultiValue'           => '0',
-        'Module::Load'               => '0',
-        'Router::Boom'               => '1.01',
         'URI'                        => '0',
-        'YAML'                       => '0',
     },
     'INSTALLDIRS'   => (($] < 5.011) ? 'perl' : 'site'),
 

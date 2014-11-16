@@ -33,15 +33,11 @@
       "runtime" : {
          "requires" : {
             "Config::Any" : "0",
-            "Hash::Merge::Simple" : "0",
             "Hash::MultiValue" : "0",
-            "Module::Load" : "0",
             "Plack" : "1.0029",
-            "Plack::Middleware::Session" : "0.21",
-            "Router::Boom" : "1.01",
             "Try::Tiny" : "0",
             "URI" : "0",
-            "YAML" : "0"
+            "Web::Simple" : "0.30",
          }
       }
    },
