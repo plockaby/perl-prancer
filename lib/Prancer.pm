@@ -6,6 +6,8 @@ use warnings FATAL => 'all';
 use version;
 our $VERSION = "1.00";
 
+use Cwd ();
+use Try::Tiny;
 use Web::Simple 'Prancer';
 
 use Prancer::Config;
@@ -29,7 +31,7 @@ sub new {
     # TODO
 
 	# enable static document loading
-	# TODO
+    $app = $self->_enable_static($app);
 
 	# wrap imported methods
 	for my $method (@to_export) {
@@ -77,9 +79,9 @@ sub import {
 		}
     }
 
-    # these are things that Web::Simple brings into packages that use it
-    # so we're going to add them to. this is done almost entirely because of
-    # the weird syntax in the router.
+	# this is used by Web::Simple to not complain about keywords in prototypes
+	# like HEAD and GET. but we need to extend it to classes that implement us
+	# so we're adding it here.
     warnings::illegalproto->unimport();
 
     return;
@@ -109,7 +111,34 @@ sub _enable_sessions {
 }
 
 sub _enable_static {
-	# TODO
+    my ($self, $app) = @_;
+
+    my $config = $self->_config->remove('static');
+    if ($config) {
+        try {
+            # this intercepts requests for documents under the configured URL
+            # and checks to see if the requested file exists in the configured
+            # file system path. if it does exist then it is served up. if it
+            # doesn't exist then the request will pass through to the handler.
+            die "no url is configured for the static file loader\n" unless defined($config->{'url'});
+            my $url = $config->{'url'};
+			die "no path is configured for the static file loader\n" unless defined($config->{'path'});
+            my $path = Cwd::realpath($config->{'path'});
+            die $config->{'path'} . " does not exist\n" unless defined($path);
+            die $config->{'path'} . " is not readable\n" unless (-r $path);
+
+            require Plack::Middleware::Static;
+            $app = Plack::Middleware::Static->wrap($app,
+                'path' => sub { s!^/$url/!!x },
+                'root' => $path,
+                'pass_through' => 1,
+            );
+        } catch {
+        	warn "could not initialize static file loader: initialization error: ${_}\n";
+        };
+    }
+
+    return $app;
 }
 
 1;
