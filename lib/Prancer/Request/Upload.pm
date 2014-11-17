@@ -3,6 +3,11 @@ package Prancer::Request::Upload;
 use strict;
 use warnings FATAL => 'all';
 
+use Carp;
+
+# even though this *should* work automatically, it was not
+our @CARP_NOT = qw(Prancer Try::Tiny);
+
 sub new {
     my ($class, $upload) = @_;
     return bless({ '_upload' => $upload }, $class);

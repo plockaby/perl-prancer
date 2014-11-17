@@ -7,6 +7,10 @@ use File::Spec;
 use Config::Any;
 use Storable qw(dclone);
 use Try::Tiny;
+use Carp;
+
+# even though this *should* work automatically, it was not
+our @CARP_NOT = qw(Prancer Try::Tiny);
 
 sub load {
     my ($class, $path) = @_;
@@ -163,7 +167,7 @@ sub _load_config_file {
         ($file, $config) = %{$tmp} if defined($tmp);
     } catch {
         my $error = (defined($_) ? $_ : "unknown");
-        die "unable to parse configuration file: ${file}: ${error}\n";
+        croak "unable to parse ${file}: ${error}";
     };
 
     return $config;

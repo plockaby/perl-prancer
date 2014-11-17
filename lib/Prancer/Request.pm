@@ -6,7 +6,12 @@ use warnings FATAL => 'all';
 use Plack::Request;
 use Hash::MultiValue;
 use URI::Escape ();
+use Carp;
+
 use Prancer::Request::Upload;
+
+# even though this *should* work automatically, it was not
+our @CARP_NOT = qw(Prancer Try::Tiny);
 
 sub new {
     my ($class, $env) = @_;

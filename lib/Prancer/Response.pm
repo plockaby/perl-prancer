@@ -3,10 +3,13 @@ package Prancer::Response;
 use strict;
 use warnings FATAL => 'all';
 
-use Carp;
 use Plack::Response;
 use Hash::MultiValue;
 use URI::Escape ();
+use Carp;
+
+# even though this *should* work automatically, it was not
+our @CARP_NOT = qw(Prancer Try::Tiny);
 
 sub new {
     my ($class, $env) = @_;
@@ -25,7 +28,7 @@ sub header {
     # return the keys if nothing is asked for
     return keys(%{$self->headers()}) unless @_;
 
-    # if given just a key return that
+    # if given just a key then return that
     if (@_ == 1) {
         my $key = shift;
         return $self->headers->{$key} unless wantarray;
@@ -56,7 +59,7 @@ sub cookie {
     # return the keys if nothing is asked for
     return keys(%{$self->cookies()}) unless @_;
 
-    # if given just a key return that
+    # if given just a key then return that
     if (@_ == 1) {
         my $key = shift;
         return $self->cookies->{$key} unless wantarray;

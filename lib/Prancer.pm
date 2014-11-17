@@ -7,12 +7,21 @@ use version;
 our $VERSION = "1.00";
 
 use Cwd ();
+use Module::Load ();
 use Try::Tiny;
+use Carp;
+
+# this call implicitly makes Prancer a subclass of Web::Simple::Application
+# this imports a number of things into our local namespace. see ->import below
+# for more info on how this is handled.
 use Web::Simple 'Prancer';
 
 use Prancer::Config;
 use Prancer::Request;
 use Prancer::Response;
+
+# even though this *should* work automatically, it was not
+our @CARP_NOT = qw(Prancer Try::Tiny);
 
 # the list of internal methods that will be exported
 my @to_export = ();
@@ -20,18 +29,9 @@ my @to_export = ();
 sub new {
 	my ($class, $configuration_file) = @_;
     my $self = bless({}, $class);
-    my $app = $self->to_psgi_app();
 
 	# load configuration options
     $self->{'_config'} = Prancer::Config->load($configuration_file);
-
-    # NOTE: you can wrap Plack::Middleware things in here
-
-	# enable sessions
-    # TODO
-
-	# enable static document loading
-    $app = $self->_enable_static($app);
 
 	# wrap imported methods
 	for my $method (@to_export) {
@@ -42,6 +42,15 @@ sub new {
             &$internal($self, @_);
         };
 	}
+
+	# get the PSGI app from Web::Simple;
+    my $app = $self->to_psgi_app();
+
+	# enable static document loading
+    $app = $self->_enable_static($app);
+
+	# enable sessions
+	$app = $self->_enable_sessions($app);
 
     return $app;
 }
@@ -64,7 +73,7 @@ sub import {
             no warnings 'redefine';
             my $exported = __PACKAGE__ . "::handler";
             *{"${exported}"} = sub {
-                die "missing implementation of 'handler' in ${namespace}\n";
+                croak "missing implementation of 'handler' in ${namespace}";
             };
         }
 
@@ -106,14 +115,10 @@ sub _config {
 	return $self->{'_config'};
 }
 
-sub _enable_sessions {
-	# TODO
-}
-
 sub _enable_static {
     my ($self, $app) = @_;
 
-    my $config = $self->_config->remove('static');
+    my $config = $self->{'_config'}->remove('static');
     if ($config) {
         try {
             # this intercepts requests for documents under the configured URL
@@ -129,12 +134,74 @@ sub _enable_static {
 
             require Plack::Middleware::Static;
             $app = Plack::Middleware::Static->wrap($app,
-                'path' => sub { s!^/$url/!!x },
+                'path' => sub { s!^$url!!x },
                 'root' => $path,
                 'pass_through' => 1,
             );
         } catch {
-        	warn "could not initialize static file loader: initialization error: ${_}\n";
+            my $error = (defined($_) ? $_ : "unknown");
+        	carp "initialization warning generated while trying to load the static file loader: ${error}";
+        };
+    }
+
+    return $app;
+}
+
+sub _enable_sessions {
+    my ($self, $app) = @_;
+
+    my $config = $self->{'_config'}->remove('session');
+    if ($config) {
+        try {
+            # load the session state module first
+            # this will probably be a cookie
+            my $state_module = undef;
+            my $state_options = undef;
+            if (ref($config->{'state'}) && ref($config->{'state'}) eq 'HASH') {
+                $state_module = $config->{'state'}->{'driver'};
+                $state_options = $config->{'state'}->{'options'};
+            }
+
+			# make sure state options are legit
+			if (defined($state_options) && (!ref($state_options) || ref($state_options) ne 'HASH')) {
+				die "session state configuration options are invalid -- expected a HASH\n";
+			}
+
+            # set defaults and then load the state module
+            $state_options ||= {};
+            $state_module ||= 'Prancer::Session::State::Cookie';
+            Module::Load::load($state_module);
+
+            # set the default for the session name because the plack
+            # default is stupid
+            $state_options->{'session_key'} ||= 'PSESSION';
+
+            # load the store module second
+            my $store_module = undef;
+            my $store_options = undef;
+            if (ref($config->{'store'}) && ref($config->{'store'}) eq 'HASH') {
+                $store_module = $config->{'store'}->{'driver'};
+                $store_options = $config->{'store'}->{'options'};
+            }
+
+			# make sure store options are legit
+			if (defined($store_options) && (!ref($store_options) || ref($store_options) ne 'HASH')) {
+				die "session store configuration options are invalid -- expected a HASH\n";
+			}
+
+            # set defaults and then load the store module
+            $store_options ||= {};
+            $store_module ||= 'Prancer::Session::Store::Memory';
+            Module::Load::load($store_module);
+
+            require Plack::Middleware::Session;
+            $app = Plack::Middleware::Session->wrap($app,
+                'state' => $state_module->new($state_options),
+                'store' => $store_module->new($store_options),
+            );
+        } catch {
+            my $error = (defined($_) ? $_ : "unknown");
+            carp "initialization warning generated while trying to load the session handler: ${error}";
         };
     }
 
