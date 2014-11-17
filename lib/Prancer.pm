@@ -48,7 +48,7 @@ sub import {
     my ($class, @options) = @_;
 
 	# store what namespace are importing things to
-	my $namespace = caller();
+	my $namespace = caller(0);
 
     my @actions = ();
     for my $option (@options) {
@@ -68,6 +68,11 @@ sub import {
 
 		# these keywords will be exported as proxies to the real methods
 		if ($option =~ /^(config)$/x) {
+			# need to predefine it so that barewords work
+			no strict 'refs';
+			*{"${namespace}::${1}"} = sub {};
+
+			# this will establish the actual method in ->new()
 			push(@to_export, [ $namespace, $1 ]);
 		}
     }
@@ -88,10 +93,12 @@ sub dispatch_request {
 
 	my $request = Prancer::Request->new($env);
 	my $response = Prancer::Response->new($env);
+	my $session = undef;
 
-    return $self->handler($env, $request, $response);
+    return $self->handler($env, $request, $response, $session);
 }
 
+## no critic (ProhibitUnusedPrivateSubroutines)
 sub _config {
 	my $self = shift;
 	return $self->{'_config'};

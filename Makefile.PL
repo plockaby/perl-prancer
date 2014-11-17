@@ -10,12 +10,13 @@ WriteMakefile(
     'AUTHOR'        => 'Paul Lockaby <plockaby AT cpan DOT org>',
     'VERSION_FROM'  => 'lib/Prancer.pm',
     'PREREQ_PM'     => {
-        'Plack'                      => '1.0029',
+        'Plack'                      => '0.9968',  # same version required by Web::Simple
         'Web::Simple'                => '0.30',
         'Try::Tiny'                  => '0',
         'Config::Any'                => '0',
         'Hash::MultiValue'           => '0',
         'URI'                        => '0',
+        'warnings::illegalproto'     => '0',
     },
     'INSTALLDIRS'   => (($] < 5.011) ? 'perl' : 'site'),
 
