@@ -27,21 +27,21 @@ our @CARP_NOT = qw(Prancer Try::Tiny);
 my @to_export = ();
 
 sub new {
-	my ($class, $configuration_file) = @_;
+    my ($class, $configuration_file) = @_;
     my $self = bless({}, $class);
 
 	# load configuration options
     $self->{'_config'} = Prancer::Config->load($configuration_file);
 
 	# wrap imported methods
-	for my $method (@to_export) {
+    for my $method (@to_export) {
         no strict 'refs';
         no warnings 'redefine';
         *{"${\$method->[0]}::${\$method->[1]}"} = sub {
             my $internal = "_${\$method->[1]}";
             &$internal($self, @_);
         };
-	}
+    }
 
 	# get the PSGI app from Web::Simple;
     my $app = $self->to_psgi_app();
@@ -50,7 +50,7 @@ sub new {
     $app = $self->_enable_static($app);
 
 	# enable sessions
-	$app = $self->_enable_sessions($app);
+    $app = $self->_enable_sessions($app);
 
     return $app;
 }
@@ -59,7 +59,7 @@ sub import {
     my ($class, @options) = @_;
 
 	# store what namespace are importing things to
-	my $namespace = caller(0);
+    my $namespace = caller(0);
 
     my @actions = ();
     for my $option (@options) {
@@ -78,14 +78,14 @@ sub import {
         }
 
 		# these keywords will be exported as proxies to the real methods
-		if ($option =~ /^(config)$/x) {
+        if ($option =~ /^(config)$/x) {
 			# need to predefine it so that barewords work
-			no strict 'refs';
-			*{"${namespace}::${1}"} = sub {};
+            no strict 'refs';
+            *{"${namespace}::${1}"} = sub {};
 
 			# this will establish the actual method in ->new()
-			push(@to_export, [ $namespace, $1 ]);
-		}
+            push(@to_export, [ $namespace, $1 ]);
+        }
     }
 
 	# this is used by Web::Simple to not complain about keywords in prototypes
@@ -100,19 +100,19 @@ sub import {
 # ->handler but ->handler will give you easier access to request and response
 # data using Prancer::Request and Prancer::Response.
 sub dispatch_request {
-	my ($self, $env) = @_;
+    my ($self, $env) = @_;
 
-	my $request = Prancer::Request->new($env);
-	my $response = Prancer::Response->new($env);
-	my $session = undef;
+    my $request = Prancer::Request->new($env);
+    my $response = Prancer::Response->new($env);
+    my $session = undef;
 
     return $self->handler($env, $request, $response, $session);
 }
 
 ## no critic (ProhibitUnusedPrivateSubroutines)
 sub _config {
-	my $self = shift;
-	return $self->{'_config'};
+    my $self = shift;
+    return $self->{'_config'};
 }
 
 sub _enable_static {
@@ -127,7 +127,7 @@ sub _enable_static {
             # doesn't exist then the request will pass through to the handler.
             die "no url is configured for the static file loader\n" unless defined($config->{'url'});
             my $url = $config->{'url'};
-			die "no path is configured for the static file loader\n" unless defined($config->{'path'});
+            die "no path is configured for the static file loader\n" unless defined($config->{'path'});
             my $path = Cwd::realpath($config->{'path'});
             die $config->{'path'} . " does not exist\n" unless defined($path);
             die $config->{'path'} . " is not readable\n" unless (-r $path);
@@ -140,7 +140,7 @@ sub _enable_static {
             );
         } catch {
             my $error = (defined($_) ? $_ : "unknown");
-        	carp "initialization warning generated while trying to load the static file loader: ${error}";
+            carp "initialization warning generated while trying to load the static file loader: ${error}";
         };
     }
 
@@ -163,9 +163,9 @@ sub _enable_sessions {
             }
 
 			# make sure state options are legit
-			if (defined($state_options) && (!ref($state_options) || ref($state_options) ne 'HASH')) {
-				die "session state configuration options are invalid -- expected a HASH\n";
-			}
+            if (defined($state_options) && (!ref($state_options) || ref($state_options) ne 'HASH')) {
+                die "session state configuration options are invalid -- expected a HASH\n";
+            }
 
             # set defaults and then load the state module
             $state_options ||= {};
@@ -185,9 +185,9 @@ sub _enable_sessions {
             }
 
 			# make sure store options are legit
-			if (defined($store_options) && (!ref($store_options) || ref($store_options) ne 'HASH')) {
-				die "session store configuration options are invalid -- expected a HASH\n";
-			}
+            if (defined($store_options) && (!ref($store_options) || ref($store_options) ne 'HASH')) {
+                die "session store configuration options are invalid -- expected a HASH\n";
+            }
 
             # set defaults and then load the store module
             $store_options ||= {};

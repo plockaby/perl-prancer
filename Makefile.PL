@@ -17,6 +17,7 @@ WriteMakefile(
         'Hash::MultiValue'           => '0',
         'URI'                        => '0',
         'warnings::illegalproto'     => '0',
+        'perl'                       => '5.010',  # because "//" is used in the database session handler
     },
     'INSTALLDIRS'   => (($] < 5.011) ? 'perl' : 'site'),
 

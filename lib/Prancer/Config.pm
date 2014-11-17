@@ -224,7 +224,6 @@ Prancer::Config
 
 =head1 SYNOPSIS
 
-This module should not be used directly to access the configuration data.
-Instead, one should use L<Prancer>.
+TODO
 
 =cut
