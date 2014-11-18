@@ -32,12 +32,14 @@
       },
       "runtime" : {
          "requires" : {
+            "Plack" : "0.9968",
+            "Plack::Middleware::Session" : "0.23",
+            "Web::Simple" : "0.30",
+            "Try::Tiny" : "0",
             "Config::Any" : "0",
             "Hash::MultiValue" : "0",
-            "Plack" : "1.0029",
-            "Try::Tiny" : "0",
             "URI" : "0",
-            "Web::Simple" : "0.30",
+            "warnings::illegalproto" : "0"
          }
       }
    },
