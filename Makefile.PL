@@ -11,13 +11,13 @@ WriteMakefile(
     'VERSION_FROM'  => 'lib/Prancer.pm',
     'PREREQ_PM'     => {
         'Plack'                      => '0.9968',  # same version required by Web::Simple
+        'Plack::Middleware::Session' => '0.23',
         'Web::Simple'                => '0.30',
         'Try::Tiny'                  => '0',
         'Config::Any'                => '0',
         'Hash::MultiValue'           => '0',
         'URI'                        => '0',
         'warnings::illegalproto'     => '0',
-        'perl'                       => '5.010',  # because "//" is used in the database session handler
     },
     'INSTALLDIRS'   => (($] < 5.011) ? 'perl' : 'site'),
 

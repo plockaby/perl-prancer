@@ -137,9 +137,10 @@ TODO
 
 =item1 L<Prancer::Session::State::Cookie>
 =item1 L<Prancer::Session::Store::Memory>
-=item1 L<Prancer::Session::Store::YAML>
+=item1 L<Prancer::Session::Store::Storable>
 =item1 L<Prancer::Session::Store::Database>
 
 =back
 
 =cut
+

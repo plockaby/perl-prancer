@@ -209,3 +209,14 @@ sub _enable_sessions {
 }
 
 1;
+
+=head1 NAME
+
+Prancer
+
+=head1 SYNOPSIS
+
+TODO
+
+=cut
+
