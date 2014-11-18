@@ -3,6 +3,9 @@ package Prancer::Request;
 use strict;
 use warnings FATAL => 'all';
 
+use version;
+our $VERSION = "1.00";
+
 use Plack::Request;
 use Hash::MultiValue;
 use URI::Escape ();

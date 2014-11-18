@@ -3,6 +3,9 @@ package Prancer::Response;
 use strict;
 use warnings FATAL => 'all';
 
+use version;
+our $VERSION = "1.00";
+
 use Plack::Response;
 use Hash::MultiValue;
 use URI::Escape ();

@@ -3,6 +3,9 @@ package Prancer::Session::Store::Memory;
 use strict;
 use warnings FATAL => 'all';
 
+use version;
+our $VERSION = "1.00";
+
 use Plack::Session::Store;
 use parent qw(Plack::Session::Store);
 

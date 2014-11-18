@@ -3,6 +3,9 @@ package Prancer::Const;
 use strict;
 use warnings FATAL => 'all';
 
+use version;
+our $VERSION = "1.00";
+
 use constant OK => 200;
 use constant REDIRECT => 302;
 use constant AUTH_REQUIRED => 401;

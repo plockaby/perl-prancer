@@ -3,6 +3,9 @@ package Prancer::Session::State::Cookie;
 use strict;
 use warnings FATAL => 'all';
 
+use version;
+our $VERSION = "1.00";
+
 use Plack::Session::State::Cookie;
 use parent qw(Plack::Session::State::Cookie);
 

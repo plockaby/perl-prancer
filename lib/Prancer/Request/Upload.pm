@@ -3,6 +3,9 @@ package Prancer::Request::Upload;
 use strict;
 use warnings FATAL => 'all';
 
+use version;
+our $VERSION = "1.00";
+
 use Carp;
 
 # even though this *should* work automatically, it was not

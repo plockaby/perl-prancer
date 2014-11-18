@@ -3,6 +3,9 @@ package Prancer::Config;
 use strict;
 use warnings FATAL => 'all';
 
+use version;
+our $VERSION = "1.00";
+
 use File::Spec;
 use Config::Any;
 use Storable qw(dclone);

@@ -18,6 +18,7 @@ WriteMakefile(
         'Hash::MultiValue'           => '0',
         'URI'                        => '0',
         'warnings::illegalproto'     => '0',
+        'perl'                       => '5.010',
     },
     'INSTALLDIRS'   => (($] < 5.011) ? 'perl' : 'site'),
 
