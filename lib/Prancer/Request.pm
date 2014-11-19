@@ -203,19 +203,19 @@ Prancer::Request
 =head1 SYNOPSIS
 
     sub handler {
-    	my ($self, $env, $request, $response, $session) = @_;
+        my ($self, $env, $request, $response, $session) = @_;
 
-		sub (GET) {
-			my $path         = $request->path();
-			my $cookie       = $request->cookie("foo");
-			my $param        = $request->param("bar");
-			my $cookie_names = $request->cookie();
-			my $user_agent   = $request->header("user-agent");
+        sub (GET) {
+            my $path         = $request->path();
+            my $cookie       = $request->cookie("foo");
+            my $param        = $request->param("bar");
+            my $cookie_names = $request->cookie();
+            my $user_agent   = $request->header("user-agent");
 
-			...
+            ...
 
-			return $response->finalize(Prancer::Const::OK;
-		}
+            return $response->finalize(Prancer::Const::OK;
+        }
     }
 
 =head1 ATTRIBUTES

@@ -30,10 +30,10 @@ sub new {
     my ($class, $configuration_file) = @_;
     my $self = bless({}, $class);
 
-	# load configuration options
+    # load configuration options
     $self->{'_config'} = Prancer::Config->load($configuration_file);
 
-	# wrap imported methods
+    # wrap imported methods
     for my $method (@to_export) {
         no strict 'refs';
         no warnings 'redefine';
@@ -43,13 +43,13 @@ sub new {
         };
     }
 
-	# get the PSGI app from Web::Simple;
+    # get the PSGI app from Web::Simple;
     my $app = $self->to_psgi_app();
 
-	# enable static document loading
+    # enable static document loading
     $app = $self->_enable_static($app);
 
-	# enable sessions
+    # enable sessions
     $app = $self->_enable_sessions($app);
 
     return $app;
@@ -58,39 +58,44 @@ sub new {
 sub import {
     my ($class, @options) = @_;
 
-	# store what namespace are importing things to
+    # store what namespace are importing things to
     my $namespace = caller(0);
 
     my @actions = ();
     for my $option (@options) {
         if ($option eq ':handler') {
-            # this block makes our caller a child class of this class
-            no strict 'refs';
-            unshift(@{"${namespace}::ISA"}, __PACKAGE__);
+            {
+                # this block makes our caller a child class of this class
+                no strict 'refs';
+                unshift(@{"${namespace}::ISA"}, __PACKAGE__);
+            }
 
-            # this block ensures that the handler method is overridden in any
-            # children classes by dying if it isn't.
-            no warnings 'redefine';
-            my $exported = __PACKAGE__ . "::handler";
-            *{"${exported}"} = sub {
-                croak "missing implementation of 'handler' in ${namespace}";
-            };
+            {
+                # this block ensures that the handler method is overridden in any
+                # children classes by dying if it isn't.
+                no strict 'refs';
+                no warnings 'redefine';
+                my $exported = __PACKAGE__ . "::handler";
+                *{"${exported}"} = sub {
+                    croak "missing implementation of 'handler' in ${namespace}";
+                };
+            }
         }
 
-		# these keywords will be exported as proxies to the real methods
+        # these keywords will be exported as proxies to the real methods
         if ($option =~ /^(config)$/x) {
-			# need to predefine it so that barewords work
+            # need to predefine it so that barewords work
             no strict 'refs';
             *{"${namespace}::${1}"} = sub {};
 
-			# this will establish the actual method in ->new()
+            # this will establish the actual method in ->new()
             push(@to_export, [ $namespace, $1 ]);
         }
     }
 
-	# this is used by Web::Simple to not complain about keywords in prototypes
-	# like HEAD and GET. but we need to extend it to classes that implement us
-	# so we're adding it here.
+    # this is used by Web::Simple to not complain about keywords in prototypes
+    # like HEAD and GET. but we need to extend it to classes that implement us
+    # so we're adding it here.
     warnings::illegalproto->unimport();
 
     return;
@@ -162,7 +167,7 @@ sub _enable_sessions {
                 $state_options = $config->{'state'}->{'options'};
             }
 
-			# make sure state options are legit
+            # make sure state options are legit
             if (defined($state_options) && (!ref($state_options) || ref($state_options) ne 'HASH')) {
                 die "session state configuration options are invalid -- expected a HASH\n";
             }
@@ -184,7 +189,7 @@ sub _enable_sessions {
                 $store_options = $config->{'store'}->{'options'};
             }
 
-			# make sure store options are legit
+            # make sure store options are legit
             if (defined($store_options) && (!ref($store_options) || ref($store_options) ne 'HASH')) {
                 die "session store configuration options are invalid -- expected a HASH\n";
             }

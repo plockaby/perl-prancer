@@ -183,15 +183,15 @@ Prancer::Response
 =head1 SYNOPSIS
 
     sub handler {
-    	my ($self, $env, $request, $response, $session) = @_;
+        my ($self, $env, $request, $response, $session) = @_;
 
         ...
 
-		sub (GET) {
-			$response->header("Content-Type" => "text/plain");
-			$response->body("hello, goodbye");
-			return $response->finalize(Prancer::Const::OK);
-		}
+        sub (GET) {
+            $response->header("Content-Type" => "text/plain");
+            $response->body("hello, goodbye");
+            return $response->finalize(Prancer::Const::OK);
+        }
     }
 
     # or using a callback
@@ -199,15 +199,15 @@ Prancer::Response
 
         ...
 
-		sub (GET) {
-			$response->header("Content-Type" => "text/plain");
-			$response->body(sub {
-				my $writer = shift;
-				$writer->write("What's up?");
-				$writer->close();
-			});
-			return $response->finalize(Prancer::Const::OK);
-		}
+        sub (GET) {
+            $response->header("Content-Type" => "text/plain");
+            $response->body(sub {
+                my $writer = shift;
+                $writer->write("What's up?");
+                $writer->close();
+            });
+            return $response->finalize(Prancer::Const::OK);
+        }
     }
 
 =head1 ATTRIBUTES
