@@ -17,6 +17,7 @@ use Carp;
 use Prancer::Core;
 use Prancer::Request;
 use Prancer::Response;
+use Prancer::Session;
 
 # even though this *should* work automatically, it was not
 our @CARP_NOT = qw(Prancer Try::Tiny);
@@ -158,7 +159,7 @@ sub dispatch_request {
 
     my $request = Prancer::Request->new($env);
     my $response = Prancer::Response->new($env);
-    my $session = undef;
+    my $session = Prancer::Session->new($env);
 
     return $self->handler($env, $request, $response, $session);
 }

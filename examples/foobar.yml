@@ -3,3 +3,11 @@ foo: bar
 static:
     path: /srv/logs/supervisor
     url: /static/
+
+session:
+    state:
+        driver: Prancer::Session::State::Cookie
+        options:
+            key: PSESSION
+    store:
+        driver: Prancer::Session::Store::Memory

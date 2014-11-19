@@ -117,8 +117,8 @@ sub enable_sessions {
 
         require Plack::Middleware::Session;
         $app = Plack::Middleware::Session->wrap($app,
-            'state' => $state_module->new($state_options),
-            'store' => $store_module->new($store_options),
+            'state' => $state_module->new(%{$state_options}),
+            'store' => $store_module->new(%{$store_options}),
         );
     } catch {
         my $error = (defined($_) ? $_ : "unknown");
