@@ -6,53 +6,70 @@ use warnings FATAL => 'all';
 use version;
 our $VERSION = "1.00";
 
-use Cwd ();
-use Module::Load ();
+# using Web::Simple in this context will implicitly make Prancer a subclass of
+# Web::Simple::Application. that will cause a number of things to be imported
+# into the Prancer namespace. see ->import below for more details.
+use Web::Simple 'Prancer';
+
 use Try::Tiny;
 use Carp;
 
-# this call implicitly makes Prancer a subclass of Web::Simple::Application
-# this imports a number of things into our local namespace. see ->import below
-# for more info on how this is handled.
-use Web::Simple 'Prancer';
-
-use Prancer::Config;
+use Prancer::Core;
 use Prancer::Request;
 use Prancer::Response;
 
 # even though this *should* work automatically, it was not
 our @CARP_NOT = qw(Prancer Try::Tiny);
 
-# the list of internal methods that will be exported
-my @to_export = ();
+# the list of internal methods that will be created on the fly and exported
+# to the caller. this makes things like the bareword call to "config" work.
+our @TO_EXPORT = ();
+
+# the list of internal methods that will be created on the fly and only
+# implemented in ourselves. this makes things like "$app->config()" work.
+our @EXPORT_OK = qw(config);
 
 sub new {
     my ($class, $configuration_file) = @_;
     my $self = bless({}, $class);
 
-    # load configuration options
-    $self->{'_config'} = Prancer::Config->load($configuration_file);
+    # the core is where our methods *really* live
+    # we mostly just proxy through to that
+    $self->{'_core'} = Prancer::Core->new($configuration_file);
 
-    # wrap imported methods
-    for my $method (@to_export) {
+    # @TO_EXPORT is an array of arrayrefs representing methods that we want to
+    # make available in our caller's namespace. each arrayref has two values:
+    #
+    #   0 = namespace into which we'll import the method
+    #   1 = the method that will be imported (must be implemented in Prancer::Core)
+    #
+    # effectively makes "namespace::method" resolve to "$self->{'_core'}->method()"
+    for my $method (@TO_EXPORT) {
+        # don't import things that can't be resolved
+        croak "Prancer::Core does not implement ${\$method->[1]}" unless $self->{'_core'}->can($method->[1]);
+
         no strict 'refs';
         no warnings 'redefine';
         *{"${\$method->[0]}::${\$method->[1]}"} = sub {
-            my $internal = "_${\$method->[1]}";
-            &$internal($self, @_);
+            my $internal = "${\$method->[1]}";
+            return $self->{'_core'}->$internal(@_);
         };
     }
 
-    # get the PSGI app from Web::Simple;
-    my $app = $self->to_psgi_app();
+    # these are things that will always
+    for my $method (@EXPORT_OK) {
+        # don't import things that can't be resolved
+        croak "Prancer::Core does not implement ${\$method->[1]}" unless $self->{'_core'}->can($method);
 
-    # enable static document loading
-    $app = $self->_enable_static($app);
+        no strict 'refs';
+        no warnings 'redefine';
+        *{"${\__PACKAGE__}::${method}"} = sub {
+            return $self->{'_core'}->$method(@_);
+        };
+    }
 
-    # enable sessions
-    $app = $self->_enable_sessions($app);
-
-    return $app;
+    $self->initialize();
+    return $self;
 }
 
 sub import {
@@ -61,8 +78,20 @@ sub import {
     # store what namespace are importing things to
     my $namespace = caller(0);
 
+    # keep track of what we've loaded so someone doesn't put the same thing
+    # into the import list in twice.
+    my $loaded = {};
+
     my @actions = ();
     for my $option (@options) {
+        next if exists($loaded->{$option});
+        $loaded->{$option} = 1;
+
+        if ($option eq ':initialize') {
+            # note that we implemented it
+            next;
+        }
+
         if ($option eq ':handler') {
             {
                 # this block makes our caller a child class of this class
@@ -70,35 +99,55 @@ sub import {
                 unshift(@{"${namespace}::ISA"}, __PACKAGE__);
             }
 
-            {
-                # this block ensures that the handler method is overridden in any
-                # children classes by dying if it isn't.
-                no strict 'refs';
-                no warnings 'redefine';
-                my $exported = __PACKAGE__ . "::handler";
-                *{"${exported}"} = sub {
-                    croak "missing implementation of 'handler' in ${namespace}";
-                };
-            }
+            # this is used by Web::Simple to not complain about keywords in
+            # prototypes like HEAD and GET. but we need to extend it to classes
+            # that implement us so we're adding it here.
+            warnings::illegalproto->unimport();
+
+            next;
         }
 
         # these keywords will be exported as proxies to the real methods
         if ($option =~ /^(config)$/x) {
-            # need to predefine it so that barewords work
             no strict 'refs';
-            *{"${namespace}::${1}"} = sub {};
+
+            # need to predefine the exported method so that barewords work
+            *{"${\__PACKAGE__}::${1}"} = *{"${namespace}::${1}"} = sub { return; };
 
             # this will establish the actual method in ->new()
-            push(@to_export, [ $namespace, $1 ]);
+            push(@TO_EXPORT, [ $namespace, $1 ]);
+
+            next;
         }
+
+        croak "${option} is not exported by the ${\__PACKAGE__} module";
     }
 
-    # this is used by Web::Simple to not complain about keywords in prototypes
-    # like HEAD and GET. but we need to extend it to classes that implement us
-    # so we're adding it here.
-    warnings::illegalproto->unimport();
+    # if we did not load ":initialize" (because the user did not ask to import
+    # it) then we will replace the initialize method with an empty one so that
+    # ->new gets to call *something* and doesn't just blow up.
+    unless (exists($loaded->{':initialize'})) {
+        no strict 'refs';
+        no warnings 'redefine';
+        *{"${\__PACKAGE__}::initialize"} = sub { return; };
+    }
 
     return;
+}
+
+sub to_psgi_app {
+    my $self = shift;
+
+    # get the PSGI app from Web::Simple;
+    my $app = $self->SUPER::to_psgi_app();
+
+    # enable static document loading
+    $app = $self->{'_core'}->enable_static($app);
+
+    # enable sessions
+    $app = $self->{'_core'}->enable_sessions($app);
+
+    return $app;
 }
 
 # NOTE: your program can definitely implement ->dispatch_request instead of
@@ -114,105 +163,6 @@ sub dispatch_request {
     return $self->handler($env, $request, $response, $session);
 }
 
-## no critic (ProhibitUnusedPrivateSubroutines)
-sub _config {
-    my $self = shift;
-    return $self->{'_config'};
-}
-
-sub _enable_static {
-    my ($self, $app) = @_;
-
-    my $config = $self->{'_config'}->remove('static');
-    if ($config) {
-        try {
-            # this intercepts requests for documents under the configured URL
-            # and checks to see if the requested file exists in the configured
-            # file system path. if it does exist then it is served up. if it
-            # doesn't exist then the request will pass through to the handler.
-            die "no url is configured for the static file loader\n" unless defined($config->{'url'});
-            my $url = $config->{'url'};
-            die "no path is configured for the static file loader\n" unless defined($config->{'path'});
-            my $path = Cwd::realpath($config->{'path'});
-            die $config->{'path'} . " does not exist\n" unless defined($path);
-            die $config->{'path'} . " is not readable\n" unless (-r $path);
-
-            require Plack::Middleware::Static;
-            $app = Plack::Middleware::Static->wrap($app,
-                'path' => sub { s!^$url!!x },
-                'root' => $path,
-                'pass_through' => 1,
-            );
-        } catch {
-            my $error = (defined($_) ? $_ : "unknown");
-            carp "initialization warning generated while trying to load the static file loader: ${error}";
-        };
-    }
-
-    return $app;
-}
-
-sub _enable_sessions {
-    my ($self, $app) = @_;
-
-    my $config = $self->{'_config'}->remove('session');
-    if ($config) {
-        try {
-            # load the session state module first
-            # this will probably be a cookie
-            my $state_module = undef;
-            my $state_options = undef;
-            if (ref($config->{'state'}) && ref($config->{'state'}) eq 'HASH') {
-                $state_module = $config->{'state'}->{'driver'};
-                $state_options = $config->{'state'}->{'options'};
-            }
-
-            # make sure state options are legit
-            if (defined($state_options) && (!ref($state_options) || ref($state_options) ne 'HASH')) {
-                die "session state configuration options are invalid -- expected a HASH\n";
-            }
-
-            # set defaults and then load the state module
-            $state_options ||= {};
-            $state_module ||= 'Prancer::Session::State::Cookie';
-            Module::Load::load($state_module);
-
-            # set the default for the session name because the plack
-            # default is stupid
-            $state_options->{'session_key'} ||= 'PSESSION';
-
-            # load the store module second
-            my $store_module = undef;
-            my $store_options = undef;
-            if (ref($config->{'store'}) && ref($config->{'store'}) eq 'HASH') {
-                $store_module = $config->{'store'}->{'driver'};
-                $store_options = $config->{'store'}->{'options'};
-            }
-
-            # make sure store options are legit
-            if (defined($store_options) && (!ref($store_options) || ref($store_options) ne 'HASH')) {
-                die "session store configuration options are invalid -- expected a HASH\n";
-            }
-
-            # set defaults and then load the store module
-            $store_options ||= {};
-            $store_module ||= 'Prancer::Session::Store::Memory';
-            Module::Load::load($store_module);
-
-            require Plack::Middleware::Session;
-            $app = Plack::Middleware::Session->wrap($app,
-                'state' => $state_module->new($state_options),
-                'store' => $store_module->new($store_options),
-            );
-        } catch {
-            my $error = (defined($_) ? $_ : "unknown");
-            carp "initialization warning generated while trying to load the session handler: ${error}";
-        };
-    }
-
-    return $app;
-}
-
 1;
 
 =head1 NAME
@@ -224,4 +174,3 @@ Prancer
 TODO
 
 =cut
-

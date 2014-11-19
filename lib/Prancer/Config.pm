@@ -220,14 +220,3 @@ sub merge {
 }
 
 1;
-
-=head1 NAME
-
-Prancer::Config
-
-=head1 SYNOPSIS
-
-TODO
-
-=cut
-

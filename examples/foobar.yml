@@ -1,0 +1,5 @@
+foo: bar
+
+static:
+    path: /srv/logs/supervisor
+    url: /static/

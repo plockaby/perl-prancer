@@ -7,6 +7,7 @@ use Test::More;
 
 BEGIN {
     use_ok('Prancer');
+    use_ok('Prancer::Core');
     use_ok('Prancer::Const');
     use_ok('Prancer::Config');
     use_ok('Prancer::Request');

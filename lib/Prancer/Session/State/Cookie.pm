@@ -73,4 +73,3 @@ by the server and not by, say, JavaScript.
 =back
 
 =cut
-
