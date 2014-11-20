@@ -21,6 +21,7 @@ BEGIN {
     use_ok('Prancer::Session::Store::Database::Driver::MySQL');
     use_ok('Prancer::Session::Store::Database::Driver::Pg');
     use_ok('Prancer::Session::Store::Database::Driver::SQLite');
+    use_ok('Prancer::Plugin');
 };
 
 done_testing();
