@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use version;
-our $VERSION = "1.00";
+our $VERSION = '1.00';
 
 use Carp;
 
@@ -68,7 +68,7 @@ can be used like this:
     </form>
 
     # in the Prancer handler
-    my $upload = $request->upload('foo');
+    my $upload = $request->upload("foo");
 
 =head1 ATTRIBUTES
 

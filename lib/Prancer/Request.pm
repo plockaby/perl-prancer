@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use version;
-our $VERSION = "1.00";
+our $VERSION = '1.00';
 
 use Plack::Request;
 use Hash::MultiValue;
@@ -319,7 +319,7 @@ Returns an L<Hash::MultiValue> containing all uploads.
 
 Generates a URL to a new location in an easy to use manner. For example:
 
-    my $link = $request->uri_for('/logout', [ signoff => 1 ]);
+    my $link = $request->uri_for("/logout", [ signoff => 1 ]);
 
 =back
 

@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use version;
-our $VERSION = "1.00";
+our $VERSION = '1.00';
 
 use File::Spec;
 use Config::Any;
@@ -53,10 +53,10 @@ sub get {
 
         if (wantarray() && ref($value)) {
             # return a value rather than a reference
-            if (ref($value) eq 'HASH') {
+            if (ref($value) eq "HASH") {
                 return %{$value};
             }
-            if (ref($value) eq 'ARRAY') {
+            if (ref($value) eq "ARRAY") {
                 return @{$value};
             }
         }
@@ -85,10 +85,10 @@ sub set {
 
     if (wantarray() && ref($old)) {
         # return a value rather than a reference
-        if (ref($old) eq 'HASH') {
+        if (ref($old) eq "HASH") {
             return %{$old};
         }
-        if (ref($old) eq 'ARRAY') {
+        if (ref($old) eq "ARRAY") {
             return @{$old};
         }
     }
@@ -106,10 +106,10 @@ sub remove {
 
     if (wantarray() && ref($old)) {
         # return a value rather than a reference
-        if (ref($old) eq 'HASH') {
+        if (ref($old) eq "HASH") {
             return %{$old};
         }
-        if (ref($old) eq 'ARRAY') {
+        if (ref($old) eq "ARRAY") {
             return @{$old};
         }
     }
@@ -133,7 +133,7 @@ sub _build_file_list {
     # figure out what environment we are operating in by looking in several
     # well known (to the PSGI world) environment variables. if none of them
     # exist then we are probably in dev.
-    my $env = $ENV{'ENVIRONMENT'} || $ENV{'PLACK_ENV'} || 'development';
+    my $env = $ENV{'ENVIRONMENT'} || $ENV{'PLACK_ENV'} || "development";
 
     my @files = ();
     for my $ext (Config::Any->extensions()) {
@@ -207,7 +207,7 @@ sub merge {
     my %merged = %{$left};
 
     for my $key (keys %{$right}) {
-        my ($hr, $hl) = map { ref $_->{$key} eq 'HASH' } $right, $left;
+        my ($hr, $hl) = map { ref($_->{$key}) eq "HASH" } $right, $left;
 
         if ($hr and $hl) {
             $merged{$key} = merge($left->{$key}, $right->{$key});

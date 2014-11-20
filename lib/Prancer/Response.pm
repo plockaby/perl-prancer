@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use version;
-our $VERSION = "1.00";
+our $VERSION = '1.00';
 
 use Plack::Response;
 use Hash::MultiValue;
@@ -115,7 +115,7 @@ sub finalize {
     # add cookies
     for my $key (keys %{$self->cookies()}) {
         for my $value (@{$self->cookies->get_all($key)}) {
-            $self->{'_response'}->header('Set-Cookie', $self->_bake_cookie($key, $value));
+            $self->{'_response'}->header("Set-Cookie", $self->_bake_cookie($key, $value));
         }
     }
 
@@ -203,7 +203,7 @@ Prancer::Response
             $response->header("Content-Type" => "text/plain");
             $response->body(sub {
                 my $writer = shift;
-                $writer->write("What's up?");
+                $writer->write("What is up?");
                 $writer->close();
             });
             return $response->finalize(Prancer::Const::OK);
@@ -240,10 +240,10 @@ If called with no arguments this will return the names of all cookies that have
 been set to be sent with the response. Otherwise, this method expects a list of
 cookies to add to the response. For example:
 
-    $response->cookie('foo' => {
-        'value'   => 'test',
+    $response->cookie("foo" => {
+        'value'   => "test",
         'path'    => "/",
-        'domain'  => '.example.com',
+        'domain'  => ".example.com",
         'expires' => time + 24 * 60 * 60,
     });
 

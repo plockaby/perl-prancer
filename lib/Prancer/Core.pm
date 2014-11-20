@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use version;
-our $VERSION = "1.00";
+our $VERSION = '1.00';
 
 use Cwd ();
 use Module::Load ();
@@ -26,7 +26,7 @@ sub new {
     my $instance = undef;
     {
         no strict 'refs';
-        $instance = \${"$class\::_instance"};
+        $instance = \${"${class}::_instance"};
         return $$instance if defined($$instance);
     }
 
@@ -63,8 +63,8 @@ sub enable_static {
         my $url = $config->{'url'};
         die "no path is configured for the static file loader\n" unless defined($config->{'path'});
         my $path = Cwd::realpath($config->{'path'});
-        die $config->{'path'} . " does not exist\n" unless defined($path);
-        die $config->{'path'} . " is not readable\n" unless (-r $path);
+        die "${\$config->{'path'}} does not exist\n" unless defined($path);
+        die "${\$config->{'path'}} is not readable\n" unless (-r $path);
 
         require Plack::Middleware::Static;
         $app = Plack::Middleware::Static->wrap($app,
@@ -84,7 +84,7 @@ sub enable_sessions {
     my ($self, $app) = @_;
     return $app unless defined($self->{'_config'});
 
-    my $config = $self->{'_config'}->remove('session');
+    my $config = $self->{'_config'}->remove("session");
     return $app unless defined($config);
 
     try {
@@ -92,41 +92,41 @@ sub enable_sessions {
         # this will probably be a cookie
         my $state_module = undef;
         my $state_options = undef;
-        if (ref($config->{'state'}) && ref($config->{'state'}) eq 'HASH') {
+        if (ref($config->{'state'}) && ref($config->{'state'}) eq "HASH") {
             $state_module = $config->{'state'}->{'driver'};
             $state_options = $config->{'state'}->{'options'};
         }
 
         # make sure state options are legit
-        if (defined($state_options) && (!ref($state_options) || ref($state_options) ne 'HASH')) {
+        if (defined($state_options) && (!ref($state_options) || ref($state_options) ne "HASH")) {
             die "session state configuration options are invalid -- expected a HASH\n";
         }
 
         # set defaults and then load the state module
         $state_options ||= {};
-        $state_module ||= 'Prancer::Session::State::Cookie';
+        $state_module ||= "Prancer::Session::State::Cookie";
         Module::Load::load($state_module);
 
         # set the default for the session name because the plack
         # default is stupid
-        $state_options->{'session_key'} ||= 'PSESSION';
+        $state_options->{'session_key'} ||= "PSESSION";
 
         # load the store module second
         my $store_module = undef;
         my $store_options = undef;
-        if (ref($config->{'store'}) && ref($config->{'store'}) eq 'HASH') {
+        if (ref($config->{'store'}) && ref($config->{'store'}) eq "HASH") {
             $store_module = $config->{'store'}->{'driver'};
             $store_options = $config->{'store'}->{'options'};
         }
 
         # make sure store options are legit
-        if (defined($store_options) && (!ref($store_options) || ref($store_options) ne 'HASH')) {
+        if (defined($store_options) && (!ref($store_options) || ref($store_options) ne "HASH")) {
             die "session store configuration options are invalid -- expected a HASH\n";
         }
 
         # set defaults and then load the store module
         $store_options ||= {};
-        $store_module ||= 'Prancer::Session::Store::Memory';
+        $store_module ||= "Prancer::Session::Store::Memory";
         Module::Load::load($store_module);
 
         require Plack::Middleware::Session;

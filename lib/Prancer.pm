@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use version;
-our $VERSION = "1.00";
+our $VERSION = '1.00';
 
 # using Web::Simple in this context will implicitly make Prancer a subclass of
 # Web::Simple::Application. that will cause a number of things to be imported
@@ -88,12 +88,12 @@ sub import {
         next if exists($loaded->{$option});
         $loaded->{$option} = 1;
 
-        if ($option eq ':initialize') {
+        if ($option eq ":initialize") {
             # note that we implemented it
             next;
         }
 
-        if ($option eq ':handler') {
+        if ($option eq ":handler") {
             {
                 # this block makes our caller a child class of this class
                 no strict 'refs';

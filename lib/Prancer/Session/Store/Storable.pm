@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use version;
-our $VERSION = "1.00";
+our $VERSION = '1.00';
 
 use Plack::Session::Store::File;
 use parent qw(Plack::Session::Store::File);
@@ -20,7 +20,7 @@ sub new {
     my ($class, $config) = @_;
 
     return try {
-        my $path = Cwd::realpath(delete($config->{'path'}) || '/tmp');
+        my $path = Cwd::realpath(delete($config->{'path'}) || "/tmp");
         die "${path} does not exist\n" unless (-e $path);
         die "${path} is not readable\n" unless (-r $path);
 

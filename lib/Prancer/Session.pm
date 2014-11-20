@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use version;
-our $VERSION = "1.00";
+our $VERSION = '1.00';
 
 use Storable qw(dclone);
 
@@ -51,10 +51,10 @@ sub get {
 
         if (wantarray() && ref($value)) {
             # return a value rather than a reference
-            if (ref($value) eq 'HASH') {
+            if (ref($value) eq "HASH") {
                 return %{$value};
             }
-            if (ref($value) eq 'ARRAY') {
+            if (ref($value) eq "ARRAY") {
                 return @{$value};
             }
         }
@@ -83,10 +83,10 @@ sub set {
 
     if (wantarray() && ref($old)) {
         # return a value rather than a reference
-        if (ref($old) eq 'HASH') {
+        if (ref($old) eq "HASH") {
             return %{$old};
         }
-        if (ref($old) eq 'ARRAY') {
+        if (ref($old) eq "ARRAY") {
             return @{$old};
         }
     }
@@ -104,10 +104,10 @@ sub remove {
 
     if (wantarray() && ref($old)) {
         # return a value rather than a reference
-        if (ref($old) eq 'HASH') {
+        if (ref($old) eq "HASH") {
             return %{$old};
         }
-        if (ref($old) eq 'ARRAY') {
+        if (ref($old) eq "ARRAY") {
             return @{$old};
         }
     }
