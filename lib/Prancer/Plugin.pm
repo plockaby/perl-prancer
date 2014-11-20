@@ -8,11 +8,6 @@ our $VERSION = "1.00";
 
 use Prancer::Core;
 
-sub load {
-    my $class = shift;
-    return bless({}, $class);
-}
-
 sub config {
     return Prancer::Core->new->config();
 }

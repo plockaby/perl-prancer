@@ -4,7 +4,6 @@ use strict;
 use warnings FATAL => 'all';
 
 use Prancer qw(config);
-# use Prancer;
 
 sub main {
     # figure out where exist to make finding config files possible
