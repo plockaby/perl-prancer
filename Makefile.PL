@@ -6,7 +6,7 @@ use warnings FATAL => 'all';
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
-    'NAME'          => 'prancer',
+    'NAME'          => 'Prancer',
     'AUTHOR'        => 'Paul Lockaby <plockaby AT cpan DOT org>',
     'VERSION_FROM'  => 'lib/Prancer.pm',
     'PREREQ_PM'     => {
