@@ -10,7 +10,6 @@ use Plack::Session::Store::File;
 use parent qw(Plack::Session::Store::File);
 
 use Cwd ();
-use Storable ();
 use Try::Tiny;
 use Carp;
 
@@ -31,11 +30,7 @@ sub new {
         $config->{'dir'} = $path;
 
         # set the storage type to Storable
-        my $self = bless($class->SUPER::new(%{$config || {}}), $class);
-        $self->{'_serializer'}   = sub { Storable::lock_nstore(reverse(@_)) };
-        $self->{'_deserializer'} = sub { Storable::lock_retrieve(@_) };
-
-        return $self;
+        return bless($class->SUPER::new(%{$config || {}}), $class);
     } catch {
         my $error = (defined($_) ? $_ : "unknown");
         croak "could not initialize session handler: ${error}";
