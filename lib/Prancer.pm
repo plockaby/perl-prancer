@@ -44,7 +44,7 @@ sub new {
     #   0 = namespace into which we'll import the method
     #   1 = the method that will be imported (must be implemented in Prancer::Core)
     #
-    # effectively makes "namespace::method" resolve to "$self->{'_core'}->method()"
+    # this makes "namespace::method" resolve to "$self->{'_core'}->method()".
     for my $method (@TO_EXPORT) {
         # don't import things that can't be resolved
         croak "Prancer::Core does not implement ${\$method->[1]}" unless $self->{'_core'}->can($method->[1]);
@@ -57,7 +57,7 @@ sub new {
         };
     }
 
-    # these are things that will always
+    # here are things that will always be exported into the Prancer namespace.
     for my $method (@EXPORT_OK) {
         # don't import things that can't be resolved
         croak "Prancer::Core does not implement ${\$method->[1]}" unless $self->{'_core'}->can($method);

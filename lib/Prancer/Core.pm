@@ -18,13 +18,27 @@ our @CARP_NOT = qw(Prancer Try::Tiny);
 
 sub new {
     my ($class, $configuration_file) = @_;
+
+    # already got an object
+    return $class if ref($class);
+
+    # this is a singleton
+    my $instance = undef;
+    {
+        no strict 'refs';
+        $instance = \${"$class\::_instance"};
+        return $$instance if defined($$instance);
+    }
+
+    # ok so the singleton doesn't exist so create an instance
     my $self = bless({}, $class);
 
-    # load configuration options
+    # load configuration options if we were given a config file
     if (defined($configuration_file)) {
         $self->{'_config'} = Prancer::Config->load($configuration_file);
     }
 
+    $$instance = $self;
     return $self;
 }
 
