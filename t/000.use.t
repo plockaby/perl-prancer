@@ -17,10 +17,6 @@ BEGIN {
     use_ok('Prancer::Session::State::Cookie');
     use_ok('Prancer::Session::Store::Memory');
     use_ok('Prancer::Session::Store::Storable');
-    use_ok('Prancer::Session::Store::Database::Driver');
-    use_ok('Prancer::Session::Store::Database::Driver::MySQL');
-    use_ok('Prancer::Session::Store::Database::Driver::Pg');
-    use_ok('Prancer::Session::Store::Database::Driver::SQLite');
     use_ok('Prancer::Plugin');
 };
 
