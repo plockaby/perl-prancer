@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use version;
-our $VERSION = '0.990002';
+our $VERSION = '0.990003';
 
 # using Web::Simple in this context will implicitly make Prancer a subclass of
 # Web::Simple::Application. that will cause a number of things to be imported

@@ -38,6 +38,13 @@ sub get {
     if (defined(wantarray())) {
         my $value = undef;
 
+        # if ->get is called without any arguments then this will return all
+        # config values as either a hash or a hashref. used by template engines
+        # to merge config values into the template vars.
+        if (!defined($key)) {
+            return wantarray ? %{$self->{'_config'}} : $self->{'_config'};
+        }
+
         if (exists($self->{'_config'}->{$key})) {
             $value = $self->{'_config'}->{$key};
         } else {
