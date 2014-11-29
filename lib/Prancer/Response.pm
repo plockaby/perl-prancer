@@ -126,7 +126,7 @@ sub finalize {
         # empty the body out just in case
         $self->{'_response'}->body("");
 
-        return sub {
+        return [ sub {
             my $responder = shift;
             # finalize will always return a three element array. the third
             # element is supposed to be the body. because we don't have a body
@@ -135,7 +135,7 @@ sub finalize {
             # list of headers.
             my $writer = $responder->([splice(@{$self->{'_response'}->finalize()}, 0, 2)]);
             return $self->{'_callback'}->($writer);
-        }
+        } ];
     }
 
     # just return a normal response
