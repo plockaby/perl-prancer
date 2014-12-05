@@ -15,6 +15,7 @@ WriteMakefile(
         'Web::Simple'                => '0.030',
         'Try::Tiny'                  => '0',
         'Config::Any'                => '0',
+        'YAML'                       => '0',
         'Hash::MultiValue'           => '0',
         'URI'                        => '0',
         'warnings::illegalproto'     => '0',
