@@ -17,20 +17,21 @@ use Carp;
 our @CARP_NOT = qw(Prancer Try::Tiny);
 
 sub new {
-    my ($class, $config) = @_;
+    my $class = shift;
+    my %config = @_;
 
     return try {
-        my $path = Cwd::realpath(delete($config->{'path'}) || "/tmp");
+        my $path = Cwd::realpath(delete($config{'path'}) || "/tmp");
         die "${path} does not exist\n" unless (-e $path);
         die "${path} is not readable\n" unless (-r $path);
 
         # i want names like "path"
         # but the Prancer::Middleware::Session really wants "dir"
         # so rename it
-        $config->{'dir'} = $path;
+        $config{'dir'} = $path;
 
         # set the storage type to Storable
-        return bless($class->SUPER::new(%{$config || {}}), $class);
+        return $class->SUPER::new(%config);
     } catch {
         my $error = (defined($_) ? $_ : "unknown");
         croak "could not initialize session handler: ${error}";
