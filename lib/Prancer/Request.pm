@@ -190,7 +190,7 @@ sub uri_for {
     my $uri = URI->new($self->base());
 
     # don't want multiple slashes clouding things up
-    if ($uri->path() =~ /\/$/x && $path =~ /^\//) {
+    if ($uri->path() =~ /\/$/x && $path =~ /^\//x) {
         $path = substr($path, 1);
     }
 
