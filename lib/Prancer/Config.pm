@@ -159,7 +159,7 @@ sub _build_file_list {
 sub _load_config_files {
     my ($self, $files) = @_;
 
-    return merge(
+    return _merge(
         map { $self->_load_config_file($_) } @{$files}
     );
 }
@@ -204,11 +204,11 @@ sub _normalize_file_path {
 }
 
 # stolen from Hash::Merge::Simple
-sub merge {
+sub _merge {
     my ($left, @right) = @_;
 
     return $left unless @right;
-    return merge($left, merge(@right)) if @right > 1;
+    return _merge($left, _merge(@right)) if @right > 1;
 
     my ($right) = @right;
     my %merged = %{$left};
@@ -217,7 +217,7 @@ sub merge {
         my ($hr, $hl) = map { ref($_->{$key}) eq "HASH" } $right, $left;
 
         if ($hr and $hl) {
-            $merged{$key} = merge($left->{$key}, $right->{$key});
+            $merged{$key} = _merge($left->{$key}, $right->{$key});
         } else {
             $merged{$key} = $right->{$key};
         }
@@ -228,3 +228,138 @@ sub merge {
 
 1;
 
+=head1 NAME
+
+Prancer::Config
+
+=head1 SYNOPSIS
+
+    # load a configuration file when creating a PSGI application
+    # this loads only one configuration file
+    my $psgi = Foo->new("/path/to/foobar.yml")->to_psgi_app();
+
+    # just load the configuration and use it wherever
+    # this loads all configuration files from the given path using logic
+    # described below to figure out which configuration files take precedence
+    my $app = Prancer->new("/path/to/mysite/conf");
+
+    # the configuration can be accessed as either a global method or as an
+    # instance method, depending on how you loaded Prancer
+    print $app->config->get('foo');
+    print config->get('bar');
+
+=head1 DESCRIPTION
+
+One doesn't need to create any configuration to use Prancer but then Prancer
+wouldn't be very useful. Prancer uses L<Config::Any> to process configuration
+files so anything supported by that will be supported by this. It will load
+configuration files from the path set when your application is created.
+
+To find configuration files from the given directory, Prancer::Config follows
+this logic. First, it will look for a file named C<config.ext> where C<ext> is
+something like C<yml> or C<ini>. Then it will look for a file named after the
+currently defined environment like C<develoment.ext> or C<production.ext>. The
+environment is determined by looking first for an environment variable called
+C<ENVIRONMENT> and then for an environment variable called C<PLACK_ENV>. If
+neither of those exist then the default is C<development>.
+
+Configuration files will be merged such that configuration values pulled out of
+the environment configuration file will take precedence over values from the
+global configuration file. For example, if you have two configuration files:
+
+    config.ini
+    ==========
+    foo = bar
+    baz = bat
+
+    development.ini
+    ===============
+    foo = bazbat
+
+After loading these configuration files the value for C<foo> will be C<bazbat>
+and the value for C<baz> will be C<bat>.
+
+If you just have one configuration file and have no desire to load multiple
+configuration files based environments or whatever you can specify a file
+rather than a directory when your application is created.
+
+Arbitrary configuration directives can be put into your configuration files
+and they can be accessed like this:
+
+    $config->get('foo');
+
+The configuration accessors will only give you the configuration directives
+found at the root of the configuration file. So if you use any data structures
+you will have to decode them yourself. For example, if you create a YAML file
+like this:
+
+    foo:
+        bar1: asdf
+        bar2: fdsa
+
+Then you will only be able to get the value to C<bar1> like this:
+
+    my $foo = config->get('foo')->{'bar1'};
+
+=head2 Reserved Configuration Options
+
+To support the components of Prancer, some keys are otherwise "reserved" in
+that you aren't able to use them. For example, trying to use the config key
+C<session> will only result in sessions being enabled and you not able to see
+your configuration values. These reserved keys are: C<session> and C<static>.
+
+=head1 METHODS
+
+=over
+
+=item has I<key>
+
+This will return true if the named key exists in the configuration:
+
+    if ($config->has('foo')) {
+        print "I see you've set foo already.\n";
+    }
+
+It will return false otherwise.
+
+=item get I<key> [I<default>]
+
+The get method takes two arguments: a key and a default value. If the key does
+not exist then the default value will be returned instead. If the value in the
+configuration is a reference then a clone of the value will be returned to
+avoid modifying the configuration in a strange way. Additionally, this method
+is context sensitive.
+
+    my $foo = $config->get('foo');
+    my %bar = $config->get('bar');
+    my @baz = $config->get('baz');
+
+=item set I<key> I<value>
+
+The set method takes two arguments: a key and a value. If the key already
+exists in the configuration then it will be overwritten and the old value will
+be returned in a context sensitive way. If the value is a reference then it
+will be cloned before being saved into the configuration to avoid any
+strangeness.
+
+    my $old_foo = $config->set('foo', 'bar');
+    my %old_bar = $config->set('bar', { 'baz' => 'bat' });
+    my @old_baz = $config->set('baz', [ 'foo', 'bar', 'baz' ]);
+    $config->set('whatever', 'do not care');
+
+=item remove I<key>
+
+The remove method takes one argument: the key to remove. The value that was
+removed will be returned in a context sensitive way.
+
+=back
+
+=head1 SEE ALSO
+
+=over
+
+=item L<Config::Any>
+
+=back
+
+=cut

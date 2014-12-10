@@ -55,9 +55,9 @@ can be used like this:
     # in the Prancer handler
     my $upload = $request->upload("foo");
 
-=head1 ATTRIBUTES
+=head1 METHODS
 
-=over 4
+=over
 
 =item size
 
@@ -78,4 +78,3 @@ Returns the original filename in the client.
 =back
 
 =cut
-

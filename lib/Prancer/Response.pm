@@ -224,9 +224,9 @@ Prancer::Response
         }
     }
 
-=head1 ATTRIBUTES
+=head1 METHODS
 
-=over 4
+=over
 
 =item header
 
@@ -279,7 +279,7 @@ method will be buffered until C<finalize> is called. For example:
 If a buffered response is not desired then the body may be a callback to send a
 streaming response to the client. Any headers or response codes set in the
 callback will be ignored as they must all be set beforehand. Any body set
-before or after a callback is set will also be ignored. For example:
+before a callback is set will also be ignored. For example:
 
     $response->body(sub {
         my $writer = shift;
@@ -291,7 +291,7 @@ before or after a callback is set will also be ignored. For example:
 =item finalize
 
 This requires one argument: the HTTP status code of the response. It will then
-send a PSGI compatible result. For example:
+send a PSGI compatible response to the client. For example:
 
     # send a 200 response
     $response->finalize(Prancer::Const::OK);
@@ -302,4 +302,3 @@ send a PSGI compatible result. For example:
 =back
 
 =cut
-

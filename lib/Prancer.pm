@@ -22,13 +22,15 @@ use Prancer::Session;
 # even though this *should* work automatically, it was not
 our @CARP_NOT = qw(Prancer Try::Tiny);
 
-# the list of internal methods that will be created on the fly and exported
-# to the caller. this makes things like the bareword call to "config" work.
-our @TO_EXPORT = ();
-
-# the list of internal methods that will be created on the fly and only
-# implemented in ourselves. this makes things like "$app->config()" work.
+# this is a list of methods that will be created on the fly and linked to
+# private methods of the same name and only implemented in ourselves. this
+# makes things like "$app->config()" work.
 our @EXPORT_OK = qw(config);
+
+# the list of methods that will be created on the fly, linked to private
+# methods of the same name, and exported to the caller. this makes things
+# like the bareword call to "config" work. this list is populated in ->import
+our @TO_EXPORT = ();
 
 sub new {
     my ($class, $configuration_file) = @_;
@@ -89,7 +91,9 @@ sub import {
         $loaded->{$option} = 1;
 
         if ($option eq ":initialize") {
-            # note that we implemented it
+            # note that the user promised to implement this. if the user
+            # doesn't promise to implement this then we will have create our
+            # own implementation to avoid errors.
             next;
         }
 
@@ -139,7 +143,7 @@ sub import {
 sub to_psgi_app {
     my $self = shift;
 
-    # get the PSGI app from Web::Simple;
+    # get the PSGI app from Web::Simple and wrap middleware around it
     my $app = $self->SUPER::to_psgi_app();
 
     # enable static document loading
@@ -172,7 +176,140 @@ Prancer
 
 =head1 SYNOPSIS
 
+When using as part of a web application:
+
+    #!/usr/bin/env perl
+
+    use strict;
+    use warnings;
+    use Plack::Runner;
+
+    # this just returns a PSGI application. $x can be wrapped with additional
+    # middleware before sending it along to Plack::Runner.
+    my $x = MyApp->new("/path/to/foobar.yml")->to_psgi_app();
+
+    # run the psgi app through Plack and send it everything from @ARGV. this
+    # way Plack::Runner will get options like what listening port to use and
+    # application server to use -- Starman, Twiggy, etc.
+    my $runner = Plack::Runner->new();
+    $runner->parse_options(@ARGV);
+    $runner->run($x);
+
+    package MyApp;
+
+    use strict;
+    use warnings;
+
+    use Prancer qw(config :initialize :handler);
+
+    sub initialize {
+        my $self = shift;
+
+        # in here we can initialize things like plugins
+
+        return;
+    }
+
+    sub handler {
+        my ($self, $env, $request, $response, $session) = @_;
+
+        sub (GET + /) {
+            $response->header("Content-Type" => "text/plain");
+            $response->body("Hello, world!");
+            return $response->finalize(200);
+        }
+    }
+
+    1;
+
+If you save the above snippet as C<myapp.psgi> and run it like this:
+
+    plackup myapp.psgi
+
+You will get "Hello, world!" in your browser. Or you can use Prancer as part of
+a standalone command line application:
+
+    #!/usr/bin/env perl
+
+    use strict;
+    use warnings;
+
+    use Prancer qw(config);
+
+    # the advantage to using Prancer in a standalone application is the ability
+    # to use a standard configuration and to load plugins for things like
+    # loggers and database connectors and template engines.
+    my $x = Prancer->new("/path/to/foobar.yml");
+    print "Hello, world!;
+
+=head1 DESCRIPTION
+
 TODO
+
+=head1 CONFIGURATION
+
+TODO
+
+=head1 EXPORTABLE
+
+This module exports one method.
+
+=over
+
+=item config
+
+This method gives you access to L<Prancer::Config>.
+
+=back
+
+There are other keywords you can put into the import list that will have other
+effects.
+
+=over
+
+=item :initialize
+
+TODO
+
+=item :handler
+
+TODO
+
+=back
+
+=head1 CREDITS
+
+This module could have been written except on the shoulders of the following
+giants:
+
+=over
+
+=item
+
+The name "Prancer" is a riff on the popular PSGI framework L<Dancer> and
+L<Dancer2>. L<Prancer::Config> is derived directly from
+L<Dancer2::Core::Role::Config>. Thank you to the
+L<Dancer2|https://github.com/PerlDancer/Dancer2> team.
+
+=item
+
+L<Prancer::Database> is derived from L<Dancer::Plugin::Database>. Thank you to
+David Precious.
+
+=item
+
+L<Prancer::Request>, L<Prancer::Request::Upload>, L<Prancer::Response>,
+L<Prancer::Session> and the session modules are but thin wrappers with minor
+modifications to L<Plack::Request>, L<Plack::Request::Upload>,
+L<Plack::Response>, and L<Plack::Middleware::Session>. Thank you to Tatsuhiko
+Miyagawa.
+
+=item
+
+The entire routing functionality of this module is offloaded to L<Web::Simple>.
+Thank you to Matt Trout for some great code that I am able to easily leverage.
+
+=back
 
 =head1 COPYRIGHT
 
@@ -191,4 +328,3 @@ the same terms as Perl itself.
 =back
 
 =cut
-

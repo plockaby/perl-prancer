@@ -143,4 +143,3 @@ sub enable_sessions {
 }
 
 1;
-

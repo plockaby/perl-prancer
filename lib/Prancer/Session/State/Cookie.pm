@@ -41,36 +41,39 @@ To use this session state handler, add this to your configuration file:
 
 =item key
 
-Set the name of the cookie. The default is B<PSESSION>.
+The name of the cookie. The default is B<PSESSION>.
+
+=item session_key
+
+The name of the session cookie. By default this is C<plack_session>.
 
 =item path
 
-Path of the cookie, this defaults to "/";
+The path of the cookie. This defaults to "/".
 
 =item domain
 
-Domain of the cookie. If nothing is supplied then it will not be included in
+The domain for the cookie. If this is not set then it will not be included in
 the cookie.
 
 =item expires
 
-Expiration time of the cookie in seconds. If nothing is supplied then it will
-not be included in the cookie, which means the session expires per browser
-session.
+The expiration time of the cookie in seconds. If this is not set then it will
+not be included in the cookie which means that sessions will expire at the end
+of the user's browser session.
 
 =item secure
 
-Secure flag for the cookie. If nothing is supplied then it will not be included
-in the cookie. If this is set then the cookie will only be transmitted on
-secure connections.
+The secure flag for the cookie. If this is not set then it will not be included
+in the cookie. If this is set to a true value then the cookie will only be
+transmitted over secure connections.
 
 =item httponly
 
-HttpOnly flag for the cookie. If nothing is supplied then it will not be
-included in the cookie. If this is set then the cookie will only be accessible
-by the server and not by, say, JavaScript.
+The HttpOnly flag for the cookie. If this is not set then it will not be
+included in the cookie. If this is set to a true value then the cookie will
+only be accessible by the server and not by, say, JavaScript.
 
 =back
 
 =cut
-

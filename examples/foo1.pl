@@ -34,7 +34,7 @@ use warnings FATAL => 'all';
 # this loads all of the prancer components. by including ":initialize", this
 # module gets to implement ->initialize which will be called when the module is
 # created. by including ":handler", this module gets to implement ->handler
-# which will receive all PSGI calls.
+# which will receive all client requests.
 use Prancer qw(config :initialize :handler);
 
 sub initialize {

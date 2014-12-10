@@ -223,9 +223,9 @@ Prancer::Request
         }
     }
 
-=head1 ATTRIBUTES
+=head1 METHODS
 
-=over 4
+=over
 
 =item uri
 
@@ -319,4 +319,3 @@ Generates a URL to a new location in an easy to use manner. For example:
 =back
 
 =cut
-
