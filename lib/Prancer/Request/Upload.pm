@@ -36,21 +36,6 @@ sub content_type {
     return $self->{'_upload'}->content_type();
 }
 
-sub basename {
-    my $self = shift;
-
-    unless (defined($self->{'_basename'})) {
-        require File::Spec::Unix;
-        my $basename = $self->{'_upload'}->path();
-        $basename =~ s|\\|/|gx;
-        $basename = (File::Spec::Unix->splitpath($basename))[2];
-        $basename =~ s|[^\w\.-]+|_|gx;
-        $self->{'_basename'} = $basename;
-    }
-
-    return $self->{'_basename'};
-}
-
 1;
 
 =head1 NAME
@@ -89,10 +74,6 @@ Returns the content type of the uploaded file.
 =item filename
 
 Returns the original filename in the client.
-
-=item basename
-
-Returns basename for "filename".
 
 =back
 
