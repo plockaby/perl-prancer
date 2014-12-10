@@ -5,7 +5,7 @@ use warnings;
 
 use Test::More;
 use Plack::Test;
-use HTTP::Request::Common qw(POST);
+use HTTP::Request::Common qw(GET POST);
 
 # these are the modules we are testing
 use Prancer::Request;

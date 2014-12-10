@@ -9,6 +9,7 @@ our $VERSION = '1.00';
 use Plack::Response;
 use Hash::MultiValue;
 use URI::Escape ();
+use HTTP::Headers;
 use Carp;
 
 # even though this *should* work automatically, it was not
@@ -27,16 +28,6 @@ sub new {
 # or get all the keys
 sub header {
     my $self = shift;
-
-    # return the keys if nothing is asked for
-    return keys(%{$self->headers()}) unless @_;
-
-    # if given just a key then return that
-    if (@_ == 1) {
-        my $key = shift;
-        return $self->headers->{$key} unless wantarray;
-        return $self->headers->get_all($key);
-    }
 
     # if we are given multiple args assume they are headers in key/value pairs
     croak "odd number of headers" unless (@_ % 2 == 0);
@@ -105,32 +96,55 @@ sub finalize {
     my ($self, $status) = @_;
     $self->{'_response'}->status($status);
 
-    # add headers
+    # build the headers using something normal and then add them to the
+    # response later. for whatever reason plack is being weird about this when
+    # the same header name is being used more than once. though, i might be
+    # doing it wrong.
+    my $headers = HTTP::Headers->new();
+
+    # add normal headers
     for my $key (keys %{$self->headers()}) {
         for my $value (@{$self->headers->get_all($key)}) {
-            $self->{'_response'}->header($key => $value);
+            $headers->push_header($key => $value);
         }
     }
 
     # add cookies
     for my $key (keys %{$self->cookies()}) {
         for my $value (@{$self->cookies->get_all($key)}) {
-            $self->{'_response'}->header("Set-Cookie", $self->_bake_cookie($key, $value));
+            $headers->push_header("Set-Cookie" => $self->_bake_cookie($key, $value));
         }
     }
 
-    if (defined($self->{'_callback'}) &&
-        ref($self->{'_callback'}) &&
+    # now add the headers we've compiled
+    $self->{'_response'}->headers($headers);
+
+    if (ref($self->{'_callback'}) &&
         ref($self->{'_callback'}) eq "CODE") {
 
-        # empty the body out just in case
-        $self->{'_response'}->body("");
-
+        # the extra array ref brackets around the sub are because Web::Simple,
+        # which we use as the router, will not do a callback without them. by
+        # returning an array ref we are telling Web::Simple that we are giving
+        # it a PSGI response. from the Web::Simple docs:
+        #
+        #     Well, a sub is a valid PSGI response too (for ultimate streaming
+        #     and async cleverness). If you want to return a PSGI sub you have
+        #     to wrap it into an array ref.
+        #
         return [ sub {
             my $responder = shift;
+
+            # this idiom here borrows heavily from the documentation on this
+            # blog post, by tatsuhiko miyagawa:
+            #
+            #   http://bulknews.typepad.com/blog/2009/10/psgiplack-streaming-is-now-complete.html
+            #
+            # this effectively allows the user of this api to stream data to
+            # the client.
+
             # finalize will always return a three element array. the third
             # element is supposed to be the body. because we don't have a body
-            # yet (it's in the callback) use splice to exclude the third
+            # yet (it's in the callback), this uses splice to exclude the third
             # element (aka the body) and just return the status code and the
             # list of headers.
             my $writer = $responder->([splice(@{$self->{'_response'}->finalize()}, 0, 2)]);
@@ -161,7 +175,7 @@ my @WDAY = qw( Sun Mon Tue Wed Thu Fri Sat );
 sub _cookie_date {
     my ($self, $expires) = @_;
 
-    if ($expires =~ /^\d+$/x) {
+    if ($expires =~ /^\-?\d+$/x) {
         # all numbers -> epoch date
         # (cookies use '-' as date separator, HTTP uses ' ')
         my ($sec, $min, $hour, $mday, $mon, $year, $wday) = gmtime($expires);
@@ -216,12 +230,10 @@ Prancer::Response
 
 =item header
 
-If called with no arguments this will return the names of all headers that have
-been set to be sent with the response. Otherwise, this method expects a list of
-headers to add to the response. For example:
+This method expects a list of headers to add to the response. For example:
 
-    context->response->header("Content-Type" => "text/plain");
-    context->response->header("Content-Length" => 1234, "X-Foo" => "bar");
+    $response->header("Content-Type" => "text/plain");
+    $response->header("Content-Length" => 1234, "X-Foo" => "bar");
 
 If the header has already been set this will add another value to it and the
 response will include the same header multiple times. To replace a header that
