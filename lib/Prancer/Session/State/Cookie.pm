@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use version;
-our $VERSION = '0.990004';
+our $VERSION = '1.00';
 
 use Plack::Session::State::Cookie;
 use parent qw(Plack::Session::State::Cookie);
@@ -73,3 +73,4 @@ by the server and not by, say, JavaScript.
 =back
 
 =cut
+

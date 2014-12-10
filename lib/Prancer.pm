@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use version;
-our $VERSION = '0.990004';
+our $VERSION = '1.00';
 
 # using Web::Simple in this context will implicitly make Prancer a subclass of
 # Web::Simple::Application. that will cause a number of things to be imported
@@ -174,4 +174,21 @@ Prancer
 
 TODO
 
+=head1 COPYRIGHT
+
+Copyright 2014 Paul Lockaby. All rights reserved.
+
+This library is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
+=head1 SEE ALSO
+
+=over
+
+=item L<Plack>
+=item L<Web::Simple>
+
+=back
+
 =cut
+

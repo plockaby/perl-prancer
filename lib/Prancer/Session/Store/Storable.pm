@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use version;
-our $VERSION = '0.990004';
+our $VERSION = '1.00';
 
 use Plack::Session::Store::File;
 use parent qw(Plack::Session::Store::File);
@@ -77,3 +77,4 @@ application will not start.
 =back
 
 =cut
+

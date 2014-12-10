@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use version;
-our $VERSION = '0.990004';
+our $VERSION = '1.00';
 
 use constant OK => 200;
 use constant REDIRECT => 302;
@@ -429,3 +429,4 @@ on HTTP codes|http://en.wikipedia.org/wiki/Http_codes> and is freely available
 under L<Creative Commons Attribution-ShareAlike License|http://creativecommons.org/licenses/by-sa/3.0/>.
 
 =cut
+

@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use version;
-our $VERSION = '0.990004';
+our $VERSION = '1.00';
 
 use Plack::Session::Store;
 use parent qw(Plack::Session::Store);
@@ -32,3 +32,4 @@ be explicitly configured like this:
             driver: Prancer::Session::Store::Memory
 
 =cut
+

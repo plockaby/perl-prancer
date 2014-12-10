@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use version;
-our $VERSION = '0.990004';
+our $VERSION = '1.00';
 
 use Plack::Response;
 use Hash::MultiValue;
@@ -290,3 +290,4 @@ send a PSGI compatible result. For example:
 =back
 
 =cut
+

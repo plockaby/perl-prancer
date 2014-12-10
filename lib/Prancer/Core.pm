@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use version;
-our $VERSION = '0.990004';
+our $VERSION = '1.00';
 
 use Cwd ();
 use Module::Load ();
@@ -143,3 +143,4 @@ sub enable_sessions {
 }
 
 1;
+
