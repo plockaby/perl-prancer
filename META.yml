@@ -18,12 +18,15 @@ no_index:
     - t
     - inc
 requires:
-  Plack: 0.9968
-  Plack::Middleware::Session: 0.23
-  Web::Simple: 0.30
-  Try::Tiny: 0
-  Config::Any: 0
-  Hash::MultiValue: 0
-  URI: 0
-  warnings::illegalproto: 0
+    Plack: 0.9968
+    Plack::Middleware::Session: 0.23
+    Web::Simple: 0.020
+    HTTP::Message: 0
+    Try::Tiny: 0
+    Config::Any: 0
+    YAML: 0
+    Hash::MultiValue: 0
+    URI: 0
+    warnings::illegalproto: 0
+    perl: 5.010
 version: 1.00

@@ -418,7 +418,7 @@ were one to ask:
     use Prancer qw(config);
 
 Importing C<config> will make the keyword C<config> available which gives
-access to any configuration options loaded by the L<Prancer>.
+access to any configuration options loaded by L<Prancer>.
 
 The second part of the L<Prancer> equation is the script that creates and calls
 your package. This can be a pretty small and standard little script, like this:
