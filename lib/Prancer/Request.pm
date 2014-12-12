@@ -219,7 +219,7 @@ Prancer::Request
 
             ...
 
-            return $response->finalize(Prancer::Const::OK);
+            return $response->finalize(200);
         }
     }
 

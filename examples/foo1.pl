@@ -31,17 +31,12 @@ package Foo;
 use strict;
 use warnings FATAL => 'all';
 
-# this loads all of the prancer components. by including ":initialize", this
-# module gets to implement ->initialize which will be called when the module is
-# created. by including ":handler", this module gets to implement ->handler
-# which will receive all client requests.
-use Prancer qw(config :initialize :handler);
+use Prancer qw(config);
 
 sub initialize {
     my $self = shift;
 
     # in here we get to initialize things!
-
 
     return;
 }
@@ -49,9 +44,15 @@ sub initialize {
 sub handler {
     my ($self, $env, $request, $response, $session) = @_;
 
+    # increment this counter every time the user requests a page
+    my $counter = $session->get('counter');
+    $counter ||= 0;
+    ++$counter;
+    $session->set('counter', $counter);
+
     sub (GET + /) {
         $response->header("Content-Type" => "text/plain");
-        $response->body("hello, goodbye. foo = " . $self->config->get('foo') . " or " . config->get('foo'));
+        $response->body("hello, goodbye. count to " . $counter . " for " . config->get('foo'));
         return $response->finalize(200);
     }
 }

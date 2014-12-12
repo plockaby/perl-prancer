@@ -3,7 +3,7 @@
 use strict;
 use warnings FATAL => 'all';
 
-use Prancer qw(config);
+use Prancer::Core qw(config);
 
 sub main {
     # figure out where exist to make finding config files possible
@@ -11,7 +11,7 @@ sub main {
 
     # this just returns a prancer object so we can get access to configuration
     # options and other awesome things like plugins.
-    my $app = Prancer->new("${root}/foobar.yml");
+    my $app = Prancer::Core->new("${root}/foobar.yml");
 
     print "hello, goodbye. foo = " . $app->config->get('foo') . " or " . config->get('foo') . "\n";
 

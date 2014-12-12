@@ -17,9 +17,9 @@ Prancer::Session::State::Cookie
 
 =head1 SYNOPSIS
 
-This module implements a session state handler that will keep track of sessions
-by adding a cookie into the response headers and reading cookies in the request
-headers. You must enable this if you want sessions to work.
+This package implements a session state handler that will keep track of
+sessions by adding a cookie into the response headers and reading cookies in
+the request headers. You must enable this if you want sessions to work.
 
 To use this session state handler, add this to your configuration file:
 
@@ -30,7 +30,6 @@ To use this session state handler, add this to your configuration file:
                 key: PSESSION
                 path: /
                 domain: .example.com
-                # expires in 30 minutes
                 expires: 1800
                 secure: 1
                 httponly: 1
@@ -42,10 +41,6 @@ To use this session state handler, add this to your configuration file:
 =item key
 
 The name of the cookie. The default is B<PSESSION>.
-
-=item session_key
-
-The name of the session cookie. By default this is C<plack_session>.
 
 =item path
 

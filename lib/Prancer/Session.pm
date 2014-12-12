@@ -151,7 +151,7 @@ include a session object specific to that request.
 
             # then redirect the user
             $response->header('Location' => '/login');
-            return $response->finalize(Prancer::Const::REDIRECT);
+            return $response->finalize(301);
         }
     }
 
@@ -179,7 +179,7 @@ about the specific options available to them.
 =item id
 
 This will return the session id of the current session. This is set and
-maintained by the session state module.
+maintained by the session state package.
 
 =item has I<key>
 

@@ -17,13 +17,13 @@ Prancer::Session::Store::Storable
 
 =head1 SYNOPSIS
 
-This module implements a session handler based on files written using the
-L<Storable> module. Session files are saved in the configured directory.
+This package implements a session handler based on files written using the
+L<Storable> package. Session files are saved in the configured directory.
 This backend can be used in production environments but two things should be
-kept in mind: the content of the session files is in plain text, and the
-session files still need to be periodically purged.
+kept in mind: the content of the session files is in plain text and session
+files still need to be periodically purged.
 
-To use this session handler, add this to your configuration file:
+To use this session storage handler, add this to your configuration file:
 
     session:
         store:

@@ -241,7 +241,7 @@ Prancer::Config
     # just load the configuration and use it wherever
     # this loads all configuration files from the given path using logic
     # described below to figure out which configuration files take precedence
-    my $app = Prancer->new("/path/to/mysite/conf");
+    my $app = Prancer::Core->new("/path/to/mysite/conf");
 
     # the configuration can be accessed as either a global method or as an
     # instance method, depending on how you loaded Prancer
@@ -250,13 +250,13 @@ Prancer::Config
 
 =head1 DESCRIPTION
 
-One doesn't need to create any configuration to use Prancer but then Prancer
-wouldn't be very useful. Prancer uses L<Config::Any> to process configuration
-files so anything supported by that will be supported by this. It will load
-configuration files from the path set when your application is created.
+Prancer uses L<Config::Any> to process configuration files. Anything supported
+by that will be supported by this. It will load configuration files from the
+configuration file or from configuration files in a path based on what you set
+when you create your application.
 
-To find configuration files from the given directory, Prancer::Config follows
-this logic. First, it will look for a file named C<config.ext> where C<ext> is
+To find configuration files from given directory, Prancer::Config follows this
+logic. First, it will look for a file named C<config.ext> where C<ext> is
 something like C<yml> or C<ini>. Then it will look for a file named after the
 currently defined environment like C<develoment.ext> or C<production.ext>. The
 environment is determined by looking first for an environment variable called
@@ -280,8 +280,8 @@ After loading these configuration files the value for C<foo> will be C<bazbat>
 and the value for C<baz> will be C<bat>.
 
 If you just have one configuration file and have no desire to load multiple
-configuration files based environments or whatever you can specify a file
-rather than a directory when your application is created.
+configuration files based on environments you can specify a file rather than a
+directory when your application is created.
 
 Arbitrary configuration directives can be put into your configuration files
 and they can be accessed like this:

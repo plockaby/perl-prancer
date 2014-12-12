@@ -17,3 +17,6 @@ allow = redefine
 [NamingConventions::ProhibitAmbiguousNames]
 forbid = close last
 
+[Modules::ProhibitExcessMainComplexity]
+max_mccabe = 30
+

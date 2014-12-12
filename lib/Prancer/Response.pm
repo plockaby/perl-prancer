@@ -204,7 +204,7 @@ Prancer::Response
         sub (GET) {
             $response->header("Content-Type" => "text/plain");
             $response->body("hello, goodbye");
-            return $response->finalize(Prancer::Const::OK);
+            return $response->finalize(200);
         }
     }
 
@@ -220,7 +220,7 @@ Prancer::Response
                 $writer->write("What is up?");
                 $writer->close();
             });
-            return $response->finalize(Prancer::Const::OK);
+            return $response->finalize(200);
         }
     }
 
@@ -292,9 +292,6 @@ before a callback is set will also be ignored. For example:
 
 This requires one argument: the HTTP status code of the response. It will then
 send a PSGI compatible response to the client. For example:
-
-    # send a 200 response
-    $response->finalize(Prancer::Const::OK);
 
     # or hard code it
     $response->finalize(200);

@@ -11,6 +11,8 @@ our $VERSION = '1.00';
 # into the Prancer namespace. see ->import below for more details.
 use Web::Simple 'Prancer';
 
+use Cwd ();
+use Module::Load ();
 use Try::Tiny;
 use Carp;
 
@@ -22,15 +24,107 @@ use Prancer::Session;
 # even though this *should* work automatically, it was not
 our @CARP_NOT = qw(Prancer Try::Tiny);
 
-# this is a list of methods that will be created on the fly and linked to
-# private methods of the same name and only implemented in ourselves. this
-# makes things like "$app->config()" work.
-our @EXPORT_OK = qw(config);
-
 # the list of methods that will be created on the fly, linked to private
-# methods of the same name, and exported to the caller. this makes things
-# like the bareword call to "config" work. this list is populated in ->import
+# methods of the same name, and exported to the caller. this makes things like
+# the bareword call to "config" work. this list is populated in ->import
 our @TO_EXPORT = ();
+
+# a super private method
+my $enable_static = sub {
+    my ($self, $app) = @_;
+    return $app unless defined($self->{'_core'}->config());
+
+    my $config = $self->{'_core'}->config->remove('static');
+    return $app unless defined($config);
+
+    try {
+        # this intercepts requests for documents under the configured URL
+        # and checks to see if the requested file exists in the configured
+        # file system path. if it does exist then it is served up. if it
+        # doesn't exist then the request will pass through to the handler.
+        die "no directory is configured for the static file loader\n" unless defined($config->{'dir'});
+        my $dir = Cwd::realpath($config->{'dir'});
+        die "${\$config->{'dir'}} does not exist\n" unless defined($dir);
+        die "${\$config->{'dir'}} is not readable\n" unless (-r $dir);
+
+        # this is the url under which static files will be stored
+        my $path = $config->{'path'} || '/static';
+
+        require Plack::Middleware::Static;
+        $app = Plack::Middleware::Static->wrap($app,
+            'path'         => sub { s/^$path//x },
+            'root'         => $dir,
+            'pass_through' => 1,
+        );
+    } catch {
+        my $error = (defined($_) ? $_ : "unknown");
+        carp "initialization warning generated while trying to load the static file loader: ${error}";
+    };
+
+    return $app;
+};
+
+# a super private method
+my $enable_sessions = sub {
+    my ($self, $app) = @_;
+    return $app unless defined($self->{'_core'}->config());
+
+    my $config = $self->{'_core'}->config->remove("session");
+    return $app unless defined($config);
+
+    try {
+        # load the session state package first
+        # this will probably be a cookie
+        my $state_package = undef;
+        my $state_options = undef;
+        if (ref($config->{'state'}) && ref($config->{'state'}) eq "HASH") {
+            $state_package = $config->{'state'}->{'driver'};
+            $state_options = $config->{'state'}->{'options'};
+        }
+
+        # make sure state options are legit
+        if (defined($state_options) && (!ref($state_options) || ref($state_options) ne "HASH")) {
+            die "session state configuration options are invalid -- expected a HASH\n";
+        }
+
+        # set defaults and then load the state package
+        $state_package ||= "Prancer::Session::State::Cookie";
+        $state_options ||= {};
+        Module::Load::load($state_package);
+
+        # set the default for the cookie name because the plack default is dumb
+        $state_options->{'session_key'} ||= (delete($state_options->{'key'}) || "PSESSION");
+
+        # now load the store package
+        my $store_package = undef;
+        my $store_options = undef;
+        if (ref($config->{'store'}) && ref($config->{'store'}) eq "HASH") {
+            $store_package = $config->{'store'}->{'driver'};
+            $store_options = $config->{'store'}->{'options'};
+        }
+
+        # make sure store options are legit
+        if (defined($store_options) && (!ref($store_options) || ref($store_options) ne "HASH")) {
+            die "session store configuration options are invalid -- expected a HASH\n";
+        }
+
+        # set defaults and then load the store package
+        $store_package ||= "Prancer::Session::Store::Memory";
+        $store_options ||= {};
+        Module::Load::load($store_package);
+
+        require Plack::Middleware::Session;
+        $app = Plack::Middleware::Session->wrap($app,
+            'state' => $state_package->new(%{$state_options}),
+            'store' => $store_package->new(%{$store_options}),
+        );
+    } catch {
+        my $error = (defined($_) ? $_ : "unknown");
+        carp "initialization warning generated while trying to load the session handler: ${error}";
+    };
+
+    return $app;
+};
 
 sub new {
     my ($class, $configuration_file) = @_;
@@ -60,8 +154,10 @@ sub new {
     }
 
     # here are things that will always be exported into the Prancer namespace.
-    for my $method (@EXPORT_OK) {
-        # don't import things that can't be resolved
+    # this DOES NOT export things things into our children's namespace, only
+    # into the Prancer namespace. this makes things like "$app->config()" work.
+    for my $method (qw(config)) {
+        # don't export things that can't be resolved
         croak "Prancer::Core does not implement ${\$method->[1]}" unless $self->{'_core'}->can($method);
 
         no strict 'refs';
@@ -81,7 +177,18 @@ sub import {
     # store what namespace are importing things to
     my $namespace = caller(0);
 
-    # keep track of what we've loaded so someone doesn't put the same thing
+    {
+        # this block makes our caller a child class of this class
+        no strict 'refs';
+        unshift(@{"${namespace}::ISA"}, __PACKAGE__);
+    }
+
+    # this is used by Web::Simple to not complain about keywords in prototypes
+    # like HEAD and GET. but we need to extend it to classes that implement us
+    # so it is being adding it here, too.
+    warnings::illegalproto->unimport();
+
+    # keep track of what has been loaded so someone doesn't put the same thing
     # into the import list in twice.
     my $loaded = {};
 
@@ -90,51 +197,20 @@ sub import {
         next if exists($loaded->{$option});
         $loaded->{$option} = 1;
 
-        if ($option eq ":initialize") {
-            # note that the user promised to implement this. if the user
-            # doesn't promise to implement this then we will have create our
-            # own implementation to avoid errors.
-            next;
-        }
-
-        if ($option eq ":handler") {
-            {
-                # this block makes our caller a child class of this class
-                no strict 'refs';
-                unshift(@{"${namespace}::ISA"}, __PACKAGE__);
-            }
-
-            # this is used by Web::Simple to not complain about keywords in
-            # prototypes like HEAD and GET. but we need to extend it to classes
-            # that implement us so we're adding it here.
-            warnings::illegalproto->unimport();
-
-            next;
-        }
-
-        # these keywords will be exported as proxies to the real methods
+        # these options will be exported as proxies to real methods
         if ($option =~ /^(config)$/x) {
             no strict 'refs';
 
             # need to predefine the exported method so that barewords work
             *{"${\__PACKAGE__}::${1}"} = *{"${namespace}::${1}"} = sub { return; };
 
-            # this will establish the actual method in ->new()
+            # this will tell ->new() to create the actual method
             push(@TO_EXPORT, [ $namespace, $1 ]);
 
             next;
         }
 
-        croak "${option} is not exported by the ${\__PACKAGE__} module";
-    }
-
-    # if we did not load ":initialize" (because the user did not ask to import
-    # it) then we will replace the initialize method with an empty one so that
-    # ->new gets to call *something* and doesn't just blow up.
-    unless (exists($loaded->{':initialize'})) {
-        no strict 'refs';
-        no warnings 'redefine';
-        *{"${\__PACKAGE__}::initialize"} = sub { return; };
+        croak "${option} is not exported by the ${\__PACKAGE__} package";
     }
 
     return;
@@ -147,10 +223,10 @@ sub to_psgi_app {
     my $app = $self->SUPER::to_psgi_app();
 
     # enable static document loading
-    $app = $self->{'_core'}->enable_static($app);
+    $app = $enable_static->($self, $app);
 
     # enable sessions
-    $app = $self->{'_core'}->enable_sessions($app);
+    $app = $enable_sessions->($self, $app);
 
     return $app;
 }
@@ -168,6 +244,14 @@ sub dispatch_request {
     return $self->handler($env, $request, $response, $session);
 }
 
+sub handler {
+    croak "->handler must be implemented in child class";
+}
+
+sub initialize {
+    return;
+}
+
 1;
 
 =head1 NAME
@@ -177,6 +261,24 @@ Prancer
 =head1 SYNOPSIS
 
 When using as part of a web application:
+
+    ===> foobar.yml
+
+    session:
+        state:
+            driver: Prancer::Session::State::Cookie
+            options:
+                session_key: PSESSION
+        store:
+            driver: Prancer::Session::Store::Storable
+            options:
+                dir: /tmp/prancer/sessions
+
+    static:
+        url: /static
+        path: /srv/www/resources
+
+    ===> myapp.psgi
 
     #!/usr/bin/env perl
 
@@ -195,17 +297,20 @@ When using as part of a web application:
     $runner->parse_options(@ARGV);
     $runner->run($x);
 
+    ===> MyApp.pm
+
     package MyApp;
 
     use strict;
     use warnings;
 
-    use Prancer qw(config :initialize :handler);
+    use Prancer qw(config);
 
     sub initialize {
         my $self = shift;
 
         # in here we can initialize things like plugins
+        # but this method is not required to be implemented
 
         return;
     }
@@ -217,6 +322,14 @@ When using as part of a web application:
             $response->header("Content-Type" => "text/plain");
             $response->body("Hello, world!");
             return $response->finalize(200);
+        }, sub (GET + /foo) {
+            $response->header("Content-Type" => "text/plain");
+            $response->body(sub {
+                my $writer = shift;
+                $writer->write("Hello, world!");
+                $writer->close();
+                return;
+            });
         }
     }
 
@@ -234,48 +347,120 @@ a standalone command line application:
     use strict;
     use warnings;
 
-    use Prancer qw(config);
+    use Prancer::Core qw(config);
 
     # the advantage to using Prancer in a standalone application is the ability
     # to use a standard configuration and to load plugins for things like
     # loggers and database connectors and template engines.
-    my $x = Prancer->new("/path/to/foobar.yml");
+    my $x = Prancer::Core->new("/path/to/foobar.yml");
     print "Hello, world!;
 
 =head1 DESCRIPTION
 
-TODO
+L<Prancer> is yet another PSGI framework that provides routing and session
+management as well as plugins for logging, database access, and template
+engines. It does this by wrapping L<Web::Simple> to handle routing and by
+wrapping other libraries to bring easy access to things that need to be done in
+web applications.
+
+There are two parts to using Prancer for a web application: a package to
+contain your application and a script to call your application. Both are
+necessary.
+
+Your package should contain a line like this:
+
+    use Prancer;
+
+This sets up your package such that it inherits from L<Prancer>. It also means
+that your package must implement the C<handler> method and optionally implement
+the C<initialize> method. As L<Prancer> inherits from L<Web::Simple> this will
+also automatically enable the C<strict> and C<warnings> pragmas.
+
+As mentioned, putting C<use Prancer;> at the top of your package will require
+you to implement the C<handler> method, like this:
+
+    sub handler {
+        my ($self, $env, $request, $response, $session) = @_;
+
+        # routing goes in here.
+        # see Web::Simple for documentation on writing routing rules.
+        sub (GET + /) {
+            $response->header("Content-Type" => "text/plain");
+            $response->body("Hello, world!");
+            return $response->finalize(200);
+        }
+    }
+
+The C<$request> variable is a L<Prancer::Request> object. The C<$response>
+variable is a L<Prancer::Response> object. The C<$session> variable is a
+L<Prancer::Session> object. If there is no configuration for sessions in any of
+your configuration files then C<$session> will be C<undef>.
+
+You may implement your own C<new> method in your package that uses L<Prancer>
+but you B<MUST> call C<$class-E<gt>SUPER::new(@_);> to get the configuration
+file loaded and any methods exported. As an alternative to implemeting C<new>
+and remembering to call C<SUPER::new>, Prancer will make a call to
+C<-E<gt>initialize> at the end of its own implementation of C<new> so things
+that you might put in C<new> can instead be put into C<initialize>, like this:
+
+    sub initialize {
+        my $self = shift;
+
+        # this is where you can initialize things when your package is created
+
+        return;
+    }
+
+By default, L<Prancer> does not export anything into your package's namespace.
+However, that doesn't mean that there is not anything that it I<could> export
+were one to ask:
+
+    use Prancer qw(config);
+
+Importing C<config> will make the keyword C<config> available which gives
+access to any configuration options loaded by the L<Prancer>.
+
+The second part of the L<Prancer> equation is the script that creates and calls
+your package. This can be a pretty small and standard little script, like this:
+
+    my $myapp = MyApp->new("/path/to/foobar.yml")
+    my $psgi = $myapp->to_psgi_app();
+
+C<$myapp> is just an instance of your package. You can pass to C<new> either
+one specific configuration file or a directory containing lots of configuration
+files. The functionality is documented in C<Prancer::Config>.
+
+C<$psgi> is just a PSGI app that you can send to L<Plack::Runner> or whatever
+you use to run PSGI apps. You can also wrap middleware around C<$app>.
+
+    my $psgi = $myapp->to_psgi_app();
+    $psgi = Plack::Middleware::Runtime->wrap($psgi);
 
 =head1 CONFIGURATION
 
-TODO
+L<Prancer> needs a configuration file. Ok, it doesn't I<need> a configuration
+file. By default, L<Prancer> does not require any configuration. But it is less
+useful without one. You I<could> always create your application like this:
 
-=head1 EXPORTABLE
+    my $app = MyApp->new->to_psgi_app();
 
-This module exports one method.
+How L<Prancer> loads configuration files is documented in L<Prancer::Config>.
+Anything you put into your configuration file is available to your application
+but there are two exceptions to that rule. The key C<session> will configure
+Prancer's session as documented in L<Prancer::Session>. The key C<static> will
+configure static file loading through L<Plack::Middleware::Static>. These
+configuration items are not made available to your application.
 
-=over
+To configure static file loading you can add this to your configuration file:
 
-=item config
+    static:
+        path: /static
+        dir: /path/to/my/resources
 
-This method gives you access to L<Prancer::Config>.
-
-=back
-
-There are other keywords you can put into the import list that will have other
-effects.
-
-=over
-
-=item :initialize
-
-TODO
-
-=item :handler
-
-TODO
-
-=back
+The C<dir> option is required to indicate the root directory for your static
+resources. The C<path> option indicates the web path to link to your static
+resources. If no path is not provided then static files can be accessed under
+C</static> by default.
 
 =head1 CREDITS
 
@@ -299,7 +484,7 @@ David Precious.
 =item
 
 L<Prancer::Request>, L<Prancer::Request::Upload>, L<Prancer::Response>,
-L<Prancer::Session> and the session modules are but thin wrappers with minor
+L<Prancer::Session> and the session packages are but thin wrappers with minor
 modifications to L<Plack::Request>, L<Plack::Request::Upload>,
 L<Plack::Response>, and L<Plack::Middleware::Session>. Thank you to Tatsuhiko
 Miyagawa.
@@ -313,7 +498,7 @@ Thank you to Matt Trout for some great code that I am able to easily leverage.
 
 =head1 COPYRIGHT
 
-Copyright 2014 Paul Lockaby. All rights reserved.
+Copyright 2013, 2014 Paul Lockaby. All rights reserved.
 
 This library is free software; you can redistribute it and/or modify it under
 the same terms as Perl itself.
