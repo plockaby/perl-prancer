@@ -5,14 +5,19 @@ use warnings FATAL => 'all';
 
 use File::Basename ();
 use Plack::Runner;
+use MyApp;
 
 sub main {
     # figure out where exist to make finding config files possible
     my (undef, $root, undef) = File::Basename::fileparse($0);
 
+    # load configurations out of /conf
+    my $myapp = MyApp->new("${root}/../conf");
+    $myapp->config->set('static', { 'dir' => "${root}/../static" });
+
     # this just returns a PSGI application. $psgi can be wrapped with
     # additional middleware before sending it along to Plack::Runner.
-    my $psgi = Foo->new("${root}/foobar.yml")->to_psgi_app();
+    my $psgi = $myapp->to_psgi_app();
 
     # run the psgi app through Plack and send it everything from @ARGV. this
     # way Plack::Runner will get options like what listening port to use and
@@ -26,36 +31,4 @@ sub main {
 
 main(@ARGV) unless caller;
 
-package Foo;
-
-use strict;
-use warnings FATAL => 'all';
-
-use Prancer qw(config);
-
-sub initialize {
-    my $self = shift;
-
-    # in here we get to initialize things!
-
-
-    return;
-}
-
-sub handler {
-    my ($self, $env, $request, $response, $session) = @_;
-
-    sub (GET + /) {
-        $response->header("Content-Type" => "text/plain");
-        $response->body(sub {
-            my $writer = shift;
-            $writer->write("hello, goodbye. foo = " . $self->config->get('foo') . " or " . config->get('foo'));
-            $writer->close();
-            return;
-        });
-        return $response->finalize(200);
-    }
-}
-
 1;
-

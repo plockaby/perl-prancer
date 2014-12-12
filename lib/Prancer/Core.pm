@@ -45,14 +45,20 @@ sub new {
 
 sub initialized {
     my $class = shift;
-
     no strict 'refs';
     return (${"${class}::_instance"} ? 1 : 0);
 }
 
 sub config {
-    my $self = shift;
     die "core has not been initialized\n" unless Prancer::Core->initialized();
+
+    # because this method takes no arguments we don't spend any effort trying
+    # to figure out if the first argument is an instance of the package or the
+    # name of the package or anything like that. and because the previous
+    # statement guarantees that we've already been initialized then we'll just
+    # get an instance of ourselves and use that. no muss, no fuss.
+    my $self = Prancer::Core->new();
+
     return $self->{'_config'};
 }
 

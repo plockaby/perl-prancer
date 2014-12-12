@@ -275,8 +275,8 @@ When using as part of a web application:
                 dir: /tmp/prancer/sessions
 
     static:
-        url: /static
-        path: /srv/www/resources
+        path: /static
+        dir: /srv/www/resources
 
     ===> myapp.psgi
 
