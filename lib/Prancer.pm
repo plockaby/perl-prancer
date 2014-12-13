@@ -508,8 +508,13 @@ the same terms as Perl itself.
 
 =over
 
-=item L<Plack>
-=item L<Web::Simple>
+=item
+
+L<Plack>
+
+=item
+
+L<Web::Simple>
 
 =back
 
