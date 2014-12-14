@@ -16,9 +16,9 @@ use Carp;
 our @CARP_NOT = qw(Prancer Try::Tiny);
 
 sub new {
-    my ($class, $env) = @_;
+    my $class = shift;
     return bless({
-        '_response' => Plack::Response->new($env),
+        '_response' => Plack::Response->new(),
         '_cookies' => Hash::MultiValue->new(),
         '_headers' => Hash::MultiValue->new(),
     }, $class);

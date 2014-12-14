@@ -238,7 +238,7 @@ sub dispatch_request {
     my ($self, $env) = @_;
 
     my $request = Prancer::Request->new($env);
-    my $response = Prancer::Response->new($env);
+    my $response = Prancer::Response->new();
     my $session = Prancer::Session->new($env);
 
     return $self->handler($env, $request, $response, $session);
