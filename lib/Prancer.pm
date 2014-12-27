@@ -218,6 +218,7 @@ sub import {
 
 sub to_psgi_app {
     my $self = shift;
+    croak "cannot call ->to_psgi_app before calling ->new" unless (ref($self) && $self->isa(__PACKAGE__));
 
     # get the PSGI app from Web::Simple and wrap middleware around it
     my $app = $self->SUPER::to_psgi_app();
