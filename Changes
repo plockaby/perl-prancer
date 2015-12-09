@@ -43,3 +43,6 @@ Revision history for Perl extension Prancer
 1.04 Sat Dec 13 04:35:58 UTC 2014
 	- Don't remove configuration options on loading things.
 	- 1.02 and 1.03 were screwed up releases
+
+1.05 Wed Dec  9 05:12:15 UTC 2015
+	- Changing HTTP::Headers uage to HTTP::Headers::Fast to fix compatibility with Plack 1.0038.
