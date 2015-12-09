@@ -272,7 +272,7 @@ Returns C<REMOTE_USER> if it's set.
 
 =item headers
 
-Returns an L<HTTP::Headers> object containing the headers for the current
+Returns an L<HTTP::Headers::Fast> object containing the headers for the current
 request.
 
 =item param

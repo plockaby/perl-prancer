@@ -14,6 +14,7 @@ WriteMakefile(
         'Plack::Middleware::Session' => '0.23',
         'Web::Simple'                => '0.020',
         'HTTP::Message'              => '0',
+        'HTTP::Headers::Fast'        => '0',
         'Try::Tiny'                  => '0',
         'Config::Any'                => '0',
         'YAML'                       => '0',

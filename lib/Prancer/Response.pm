@@ -9,7 +9,7 @@ our $VERSION = '1.04';
 use Plack::Response;
 use Hash::MultiValue;
 use URI::Escape ();
-use HTTP::Headers;
+use HTTP::Headers::Fast;
 use Carp;
 
 # even though this *should* work automatically, it was not
@@ -100,7 +100,7 @@ sub finalize {
     # response later. for whatever reason plack is being weird about this when
     # the same header name is being used more than once. though, i might be
     # doing it wrong.
-    my $headers = HTTP::Headers->new();
+    my $headers = HTTP::Headers::Fast->new();
 
     # add normal headers
     for my $key (keys %{$self->headers()}) {
